@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handler Package | Controller-Runtime Documentation</title>
+    <meta name="description" content="Comprehensive documentation for Kubernetes controller-runtime">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container" id="app">
+        
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="menu-toggle" id="menuToggle" title="Toggle Menu">
+                    <span class="hamburger"></span>
+                </button>
+                <h1 class="site-title">
+                    <a href="/">Controller-Runtime Documentation</a>
+                </h1>
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav" id="sidebarNav">
+                <ul class="menu-list">
+    
+    
+        
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/01-manager/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Manager Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/02-controller/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Controller Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/03-reconcile/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Reconcile Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/04-builder/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Builder Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/05-client/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Client Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/06-cache/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Cache Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/07-source/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Source Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item active">
+                <a href="http://localhost:9005/docs/08-handler/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Handler Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/09-predicate/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Predicate Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/10-webhook/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Webhook Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/11-additional-packages/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Additional Packages</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/00-overview/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Controller-Runtime Architecture Overview</span>
+                </a>
+            </li>
+            
+        
+    
+</ul>
+
+            </nav>
+        </aside>
+
+        
+        <div class="resize-handle" id="resizeHandle"></div>
+
+        
+        <main class="main-content">
+            <div class="content-wrapper">
+                
+<article class="doc-content">
+    <header class="doc-header">
+        <h1>Handler Package</h1>
+    </header>
+    
+    <div class="doc-body">
+        <h2 id="overview">Overview</h2>
+<p>The <code>pkg/handler</code> package provides event handlers that transform Kubernetes events into reconcile requests. Handlers determine which objects should be reconciled in response to an event.</p>
+<h2 id="package-location">Package Location</h2>
+<pre tabindex="0"><code>pkg/handler/
+├── eventhandler.go         # Handler interfaces
+├── enqueue.go              # EnqueueRequestForObject
+├── enqueue_owner.go        # EnqueueRequestForOwner
+├── enqueue_mapped.go       # EnqueueRequestsFromMapFunc
+├── doc.go                  # Package documentation
+└── example_test.go         # Usage examples
+</code></pre><h2 id="core-concepts">Core Concepts</h2>
+<h3 id="handler-flow">Handler Flow</h3>
+<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+    Event[Kubernetes Event] --&gt;|Create/Update/Delete| Handler[Event Handler]
+    Handler --&gt;|Transform| Requests[Reconcile Requests]
+    Requests --&gt;|Enqueue| Queue[Work Queue]
+    Queue --&gt;|Dequeue| Reconciler[Reconciler]
+    
+    style Handler fill:#e1f5ff
+    style Requests fill:#fff4e1
+</code></pre><h2 id="eventhandler-interface">EventHandler Interface</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">EventHandler</span> = <span style="color:#a6e22e">TypedEventHandler</span>[<span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>, <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">TypedEventHandler</span>[<span style="color:#a6e22e">object</span> <span style="color:#66d9ef">any</span>, <span style="color:#a6e22e">request</span> <span style="color:#a6e22e">comparable</span>] <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Create is called in response to a create event</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">TypedCreateEvent</span>[<span style="color:#a6e22e">object</span>], <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">TypedRateLimitingInterface</span>[<span style="color:#a6e22e">request</span>])
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Update is called in response to an update event</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">TypedUpdateEvent</span>[<span style="color:#a6e22e">object</span>], <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">TypedRateLimitingInterface</span>[<span style="color:#a6e22e">request</span>])
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Delete is called in response to a delete event</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Delete</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">TypedDeleteEvent</span>[<span style="color:#a6e22e">object</span>], <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">TypedRateLimitingInterface</span>[<span style="color:#a6e22e">request</span>])
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Generic is called for synthetic events</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Generic</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">TypedGenericEvent</span>[<span style="color:#a6e22e">object</span>], <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">TypedRateLimitingInterface</span>[<span style="color:#a6e22e">request</span>])
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="built-in-handlers">Built-in Handlers</h2>
+<h3 id="1-enqueuerequestforobject">1. EnqueueRequestForObject</h3>
+<p>Enqueues the object that triggered the event:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/handler&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Enqueue the Pod itself</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">handler</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Use with builder</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}) <span style="color:#75715e">// Automatically uses EnqueueRequestForObject</span>
+</span></span></code></pre></div><p><strong>Use case</strong>: Reconcile the object that changed.</p>
+<p><strong>Example</strong>:</p>
+<ul>
+<li>Pod created → Reconcile that Pod</li>
+<li>Deployment updated → Reconcile that Deployment</li>
+</ul>
+<h3 id="2-enqueuerequestforowner">2. EnqueueRequestForOwner</h3>
+<p>Enqueues the owner of the object:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Enqueue the Deployment that owns the Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">handler</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForOwner</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetScheme</span>(),
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetRESTMapper</span>(),
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}, <span style="color:#75715e">// Owner type</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">OnlyControllerOwner</span>(), <span style="color:#75715e">// Only controller owner</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Use with builder</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Owns</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}) <span style="color:#75715e">// Automatically uses EnqueueRequestForOwner</span>
+</span></span></code></pre></div><p><strong>Use case</strong>: Reconcile the owner when owned resource changes.</p>
+<p><strong>Example</strong>:</p>
+<ul>
+<li>Pod created → Reconcile owning Deployment</li>
+<li>ReplicaSet updated → Reconcile owning Deployment</li>
+</ul>
+<h3 id="3-enqueuerequestsfrommapfunc">3. EnqueueRequestsFromMapFunc</h3>
+<p>Custom mapping from event to reconcile requests:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Map ConfigMap to Deployments that reference it</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">handler</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestsFromMapFunc</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Find Deployments that reference this ConfigMap</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">deployments</span> <span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">DeploymentList</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetClient</span>().<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">deployments</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">requests</span> []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">deploy</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">deployments</span>.<span style="color:#a6e22e">Items</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// Check if deployment references this ConfigMap</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">vol</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">deploy</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">Template</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">Volumes</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">vol</span>.<span style="color:#a6e22e">ConfigMap</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">vol</span>.<span style="color:#a6e22e">ConfigMap</span>.<span style="color:#a6e22e">Name</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetName</span>() {
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">requests</span> = append(<span style="color:#a6e22e">requests</span>, <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>{
+</span></span><span style="display:flex;"><span>                        <span style="color:#a6e22e">NamespacedName</span>: <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>{
+</span></span><span style="display:flex;"><span>                            <span style="color:#a6e22e">Name</span>:      <span style="color:#a6e22e">deploy</span>.<span style="color:#a6e22e">Name</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#a6e22e">Namespace</span>: <span style="color:#a6e22e">deploy</span>.<span style="color:#a6e22e">Namespace</span>,
+</span></span><span style="display:flex;"><span>                        },
+</span></span><span style="display:flex;"><span>                    })
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">requests</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Use with builder</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Watches</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">ConfigMap</span>{}, <span style="color:#a6e22e">handler</span>)
+</span></span></code></pre></div><p><strong>Use case</strong>: Custom mapping logic between resources.</p>
+<p><strong>Example</strong>:</p>
+<ul>
+<li>ConfigMap updated → Reconcile all Deployments using it</li>
+<li>Node updated → Reconcile all Pods on that Node</li>
+<li>Secret changed → Reconcile all resources referencing it</li>
+</ul>
+<h2 id="handler-usage-patterns">Handler Usage Patterns</h2>
+<h3 id="pattern-1-watch-primary-resource">Pattern 1: Watch Primary Resource</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Automatically uses EnqueueRequestForObject</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{})
+</span></span></code></pre></div><p>Equivalent to:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WatchesRawSource</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>(<span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>(), <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{},
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{}),
+</span></span><span style="display:flex;"><span>    )
+</span></span></code></pre></div><h3 id="pattern-2-watch-owned-resources">Pattern 2: Watch Owned Resources</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Automatically uses EnqueueRequestForOwner</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Owns</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{})
+</span></span></code></pre></div><p>Equivalent to:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WatchesRawSource</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>(<span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>(), <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForOwner</span>(
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetScheme</span>(),
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetRESTMapper</span>(),
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{},
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">OnlyControllerOwner</span>(),
+</span></span><span style="display:flex;"><span>            )),
+</span></span><span style="display:flex;"><span>    )
+</span></span></code></pre></div><h3 id="pattern-3-custom-mapping">Pattern 3: Custom Mapping</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Watches</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">ConfigMap</span>{},
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestsFromMapFunc</span>(<span style="color:#a6e22e">mapFunc</span>),
+</span></span><span style="display:flex;"><span>    )
+</span></span></code></pre></div><h2 id="enqueuerequestforowner-details">EnqueueRequestForOwner Details</h2>
+<h3 id="controller-owner-only">Controller Owner Only</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Only enqueue if owner reference has controller=true</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForOwner</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">scheme</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mapper</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">OnlyControllerOwner</span>(), <span style="color:#75715e">// Default behavior</span>
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h3 id="all-owners">All Owners</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Enqueue for all owner references</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForOwner</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">scheme</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mapper</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// No OnlyControllerOwner option</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Or with builder</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Owns</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">MatchEveryOwner</span>)
+</span></span></code></pre></div><h3 id="typed-owner-handler">Typed Owner Handler</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Type-safe owner handler</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">handler</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">TypedEnqueueRequestForOwner</span>[<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>](
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetScheme</span>(),
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetRESTMapper</span>(),
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">OnlyControllerOwner</span>(),
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h2 id="enqueuerequestsfrommapfunc-details">EnqueueRequestsFromMapFunc Details</h2>
+<h3 id="basic-mapping">Basic Mapping</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mapFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>{
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">NamespacedName</span>: <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>{
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Name</span>:      <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetName</span>(),
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Namespace</span>: <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetNamespace</span>(),
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">handler</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestsFromMapFunc</span>(<span style="color:#a6e22e">mapFunc</span>)
+</span></span></code></pre></div><h3 id="mapping-with-client-lookup">Mapping with Client Lookup</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mapFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Get client from context</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">FromContext</span>(<span style="color:#a6e22e">ctx</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// List resources that reference this object</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">resources</span> <span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResourceList</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">resources</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">requests</span> []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">res</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">resources</span>.<span style="color:#a6e22e">Items</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">ConfigMapRef</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetName</span>() {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">requests</span> = append(<span style="color:#a6e22e">requests</span>, <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>{
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">NamespacedName</span>: <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>{
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">Name</span>:      <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Name</span>,
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">Namespace</span>: <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Namespace</span>,
+</span></span><span style="display:flex;"><span>                },
+</span></span><span style="display:flex;"><span>            })
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">requests</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="mapping-with-field-index">Mapping with Field Index</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Add index first</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetFieldIndexer</span>().<span style="color:#a6e22e">IndexField</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}, <span style="color:#e6db74">&#34;spec.configMapRef&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">res</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> []<span style="color:#66d9ef">string</span>{<span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">ConfigMapRef</span>}
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Use index in map function</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mapFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">FromContext</span>(<span style="color:#a6e22e">ctx</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">resources</span> <span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResourceList</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">resources</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;spec.configMapRef&#34;</span>: <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetName</span>()}); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">requests</span> []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">res</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">resources</span>.<span style="color:#a6e22e">Items</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">requests</span> = append(<span style="color:#a6e22e">requests</span>, <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">NamespacedName</span>: <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>{
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Name</span>:      <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Name</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Namespace</span>: <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Namespace</span>,
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>        })
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">requests</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="custom-handlers">Custom Handlers</h2>
+<h3 id="implementing-eventhandler">Implementing EventHandler</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MyHandler</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Client</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">h</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyHandler</span>) <span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">evt</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">CreateEvent</span>, <span style="color:#a6e22e">q</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">RateLimitingInterface</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Custom create logic</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">NamespacedName</span>: <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Name</span>:      <span style="color:#a6e22e">evt</span>.<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">GetName</span>(),
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Namespace</span>: <span style="color:#a6e22e">evt</span>.<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">GetNamespace</span>(),
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">h</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyHandler</span>) <span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">evt</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>, <span style="color:#a6e22e">q</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">RateLimitingInterface</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Custom update logic</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">NamespacedName</span>: <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Name</span>:      <span style="color:#a6e22e">evt</span>.<span style="color:#a6e22e">ObjectNew</span>.<span style="color:#a6e22e">GetName</span>(),
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Namespace</span>: <span style="color:#a6e22e">evt</span>.<span style="color:#a6e22e">ObjectNew</span>.<span style="color:#a6e22e">GetNamespace</span>(),
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">h</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyHandler</span>) <span style="color:#a6e22e">Delete</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">evt</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">DeleteEvent</span>, <span style="color:#a6e22e">q</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">RateLimitingInterface</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Custom delete logic</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">h</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyHandler</span>) <span style="color:#a6e22e">Generic</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">evt</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>, <span style="color:#a6e22e">q</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">RateLimitingInterface</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Custom generic logic</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Use custom handler</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">handler</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyHandler</span>{<span style="color:#a6e22e">client</span>: <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetClient</span>()}
+</span></span></code></pre></div><h3 id="using-funcs">Using Funcs</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">handler</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">CreateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">evt</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">CreateEvent</span>, <span style="color:#a6e22e">q</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">RateLimitingInterface</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Handle create</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">q</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">NamespacedName</span>: <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>{
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Name</span>:      <span style="color:#a6e22e">evt</span>.<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">GetName</span>(),
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Namespace</span>: <span style="color:#a6e22e">evt</span>.<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">GetNamespace</span>(),
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>        })
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">UpdateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">evt</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>, <span style="color:#a6e22e">q</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">RateLimitingInterface</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Handle update</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DeleteFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">evt</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">DeleteEvent</span>, <span style="color:#a6e22e">q</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">RateLimitingInterface</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Handle delete</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GenericFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">evt</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>, <span style="color:#a6e22e">q</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">RateLimitingInterface</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Handle generic</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="common-patterns">Common Patterns</h2>
+<h3 id="1-one-to-one-mapping">1. One-to-One Mapping</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Object triggers reconciliation of itself</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{}
+</span></span></code></pre></div><h3 id="2-child-to-parent-mapping">2. Child-to-Parent Mapping</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Child triggers reconciliation of parent</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForOwner</span>(<span style="color:#a6e22e">scheme</span>, <span style="color:#a6e22e">mapper</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Parent</span>{})
+</span></span></code></pre></div><h3 id="3-one-to-many-mapping">3. One-to-Many Mapping</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// One object triggers reconciliation of many</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestsFromMapFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Return multiple requests</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>{<span style="color:#a6e22e">req1</span>, <span style="color:#a6e22e">req2</span>, <span style="color:#a6e22e">req3</span>}
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="4-cross-namespace-mapping">4. Cross-Namespace Mapping</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Map object in one namespace to objects in other namespaces</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestsFromMapFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">resources</span> <span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResourceList</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">resources</span>) <span style="color:#75715e">// List across all namespaces</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">requests</span> []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">res</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">resources</span>.<span style="color:#a6e22e">Items</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">Reference</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetName</span>() {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">requests</span> = append(<span style="color:#a6e22e">requests</span>, <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>{
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">NamespacedName</span>: <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>{
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">Name</span>:      <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Name</span>,
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">Namespace</span>: <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Namespace</span>,
+</span></span><span style="display:flex;"><span>                },
+</span></span><span style="display:flex;"><span>            })
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">requests</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="5-conditional-mapping">5. Conditional Mapping</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Only map if certain conditions are met</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestsFromMapFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Check condition</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetLabels</span>()[<span style="color:#e6db74">&#34;trigger&#34;</span>] <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;true&#34;</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>{
+</span></span><span style="display:flex;"><span>        {<span style="color:#a6e22e">NamespacedName</span>: <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Name</span>:      <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetName</span>(),
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Namespace</span>: <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetNamespace</span>(),
+</span></span><span style="display:flex;"><span>        }},
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h2 id="best-practices">Best Practices</h2>
+<h3 id="1-use-built-in-handlers-when-possible">1. Use Built-in Handlers When Possible</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Preferred</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Owns</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Instead of custom handler</span>
+</span></span></code></pre></div><h3 id="2-use-field-indexes-for-efficient-lookups">2. Use Field Indexes for Efficient Lookups</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Add index</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetFieldIndexer</span>().<span style="color:#a6e22e">IndexField</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}, <span style="color:#e6db74">&#34;spec.ref&#34;</span>, <span style="color:#a6e22e">indexFunc</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Use in map function</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mapFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">resources</span> <span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResourceList</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">resources</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;spec.ref&#34;</span>: <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetName</span>()})
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// ...</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="3-handle-errors-gracefully">3. Handle Errors Gracefully</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mapFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">resources</span> <span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResourceList</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">resources</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Log error but don&#39;t fail</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;failed to list resources&#34;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// ...</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="4-avoid-expensive-operations">4. Avoid Expensive Operations</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// BAD - expensive API calls</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mapFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Multiple API calls</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ns</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">namespaces</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">list</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">InNamespace</span>(<span style="color:#a6e22e">ns</span>))
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// GOOD - single API call with index</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mapFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">list</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;field&#34;</span>: <span style="color:#a6e22e">value</span>})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="5-return-empty-slice-not-nil">5. Return Empty Slice, Not Nil</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Preferred</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">return</span> []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>{}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Also acceptable</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span></code></pre></div><h2 id="common-pitfalls">Common Pitfalls</h2>
+<h3 id="1-not-handling-empty-owner-references">1. Not Handling Empty Owner References</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// BAD - assumes owner reference exists</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForOwner</span>(<span style="color:#a6e22e">scheme</span>, <span style="color:#a6e22e">mapper</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Parent</span>{})
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Fails if child has no owner reference</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// GOOD - handled automatically by EnqueueRequestForOwner</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Returns empty if no owner reference</span>
+</span></span></code></pre></div><h3 id="2-expensive-map-functions">2. Expensive Map Functions</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// BAD - lists all resources every time</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mapFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">resources</span> <span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResourceList</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">resources</span>) <span style="color:#75715e">// Expensive!</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Filter in memory</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// GOOD - use field index</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mapFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">resources</span> <span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResourceList</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">resources</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;ref&#34;</span>: <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetName</span>()})
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="3-forgetting-context">3. Forgetting Context</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// BAD - not using context</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mapFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">resources</span>) <span style="color:#75715e">// Wrong!</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// GOOD - use provided context</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mapFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">resources</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="related-packages">Related Packages</h2>
+<ul>
+<li><a href="./07-source.md">Source Package</a> - Provides events to handlers</li>
+<li><a href="./09-predicate.md">Predicate Package</a> - Filters events before handlers</li>
+<li><a href="./02-controller.md">Controller Package</a> - Uses handlers</li>
+<li><a href="./04-builder.md">Builder Package</a> - Configures handlers</li>
+</ul>
+
+        
+        
+    </div>
+</article>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

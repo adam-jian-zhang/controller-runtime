@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Package | Controller-Runtime Documentation</title>
+    <meta name="description" content="Comprehensive documentation for Kubernetes controller-runtime">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container" id="app">
+        
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="menu-toggle" id="menuToggle" title="Toggle Menu">
+                    <span class="hamburger"></span>
+                </button>
+                <h1 class="site-title">
+                    <a href="/">Controller-Runtime Documentation</a>
+                </h1>
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav" id="sidebarNav">
+                <ul class="menu-list">
+    
+    
+        
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/01-manager/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Manager Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/02-controller/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Controller Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/03-reconcile/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Reconcile Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/04-builder/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Builder Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item active">
+                <a href="http://localhost:9005/docs/05-client/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Client Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/06-cache/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Cache Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/07-source/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Source Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/08-handler/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Handler Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/09-predicate/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Predicate Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/10-webhook/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Webhook Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/11-additional-packages/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Additional Packages</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/00-overview/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Controller-Runtime Architecture Overview</span>
+                </a>
+            </li>
+            
+        
+    
+</ul>
+
+            </nav>
+        </aside>
+
+        
+        <div class="resize-handle" id="resizeHandle"></div>
+
+        
+        <main class="main-content">
+            <div class="content-wrapper">
+                
+<article class="doc-content">
+    <header class="doc-header">
+        <h1>Client Package</h1>
+    </header>
+    
+    <div class="doc-body">
+        <h2 id="overview">Overview</h2>
+<p>The <code>pkg/client</code> package provides a unified, type-safe interface for interacting with Kubernetes API servers. It abstracts the complexity of client-go and provides a consistent API for reading and writing Kubernetes objects.</p>
+<h2 id="package-location">Package Location</h2>
+<pre tabindex="0"><code>pkg/client/
+├── client.go               # Main client implementation
+├── interfaces.go           # Client interfaces
+├── options.go              # Client options
+├── patch.go                # Patch implementations
+├── typed_client.go         # Typed client
+├── unstructured_client.go  # Unstructured client
+├── metadata_client.go      # Metadata-only client
+├── fake/                   # Fake client for testing
+├── apiutil/                # API utilities
+├── config/                 # Config utilities
+└── interceptor/            # Client interceptors
+</code></pre><h2 id="core-concepts">Core Concepts</h2>
+<h3 id="client-architecture">Client Architecture</h3>
+<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+    Client[Client Interface]
+    Client --&gt; Reader[Reader Interface]
+    Client --&gt; Writer[Writer Interface]
+    Client --&gt; StatusClient[StatusClient Interface]
+    
+    Reader --&gt; Get[Get]
+    Reader --&gt; List[List]
+    
+    Writer --&gt; Create[Create]
+    Writer --&gt; Update[Update]
+    Writer --&gt; Patch[Patch]
+    Writer --&gt; Delete[Delete]
+    Writer --&gt; DeleteAllOf[DeleteAllOf]
+    
+    StatusClient --&gt; StatusWriter[Status SubResource]
+    
+    style Client fill:#e1f5ff
+    style Reader fill:#fff4e1
+    style Writer fill:#fff4e1
+</code></pre><h2 id="client-interface">Client Interface</h2>
+<p>The Client interface combines Reader, Writer, and StatusClient:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Client</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Reader</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Writer</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">StatusClient</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">SubResourceClientConstructor</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Scheme returns the scheme this client is using</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Scheme</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">Scheme</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// RESTMapper returns the REST mapper</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">RESTMapper</span>() <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">RESTMapper</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GroupVersionKindFor returns the GroupVersionKind for the given object</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GroupVersionKindFor</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">Object</span>) (<span style="color:#a6e22e">schema</span>.<span style="color:#a6e22e">GroupVersionKind</span>, <span style="color:#66d9ef">error</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// IsObjectNamespaced returns true if the object is namespaced</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">IsObjectNamespaced</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">Object</span>) (<span style="color:#66d9ef">bool</span>, <span style="color:#66d9ef">error</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="reader-interface">Reader Interface</h2>
+<p>The Reader interface provides read operations:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Reader</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Get retrieves an object</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">key</span> <span style="color:#a6e22e">ObjectKey</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">Object</span>, <span style="color:#a6e22e">opts</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">GetOption</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// List retrieves a list of objects</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">list</span> <span style="color:#a6e22e">ObjectList</span>, <span style="color:#a6e22e">opts</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">ListOption</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="get-operation">Get Operation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;context&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">corev1</span> <span style="color:#e6db74">&#34;k8s.io/api/core/v1&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;k8s.io/apimachinery/pkg/types&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Get a Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">pod</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;my-pod&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Get with options</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">GetOptions</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Raw</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">GetOptions</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ResourceVersion</span>: <span style="color:#e6db74">&#34;12345&#34;</span>,
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="list-operation">List Operation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// List all Pods in a namespace</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">podList</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">PodList</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">ListOptions</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// List with label selector</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">InNamespace</span>(<span style="color:#e6db74">&#34;default&#34;</span>),
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingLabels</span>{<span style="color:#e6db74">&#34;app&#34;</span>: <span style="color:#e6db74">&#34;myapp&#34;</span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// List with field selector</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">InNamespace</span>(<span style="color:#e6db74">&#34;default&#34;</span>),
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;spec.nodeName&#34;</span>: <span style="color:#e6db74">&#34;node-1&#34;</span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// List all across all namespaces</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>)
+</span></span></code></pre></div><h2 id="writer-interface">Writer Interface</h2>
+<p>The Writer interface provides write operations:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Writer</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Create saves a new object</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">Object</span>, <span style="color:#a6e22e">opts</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">CreateOption</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Delete deletes an object</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Delete</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">Object</span>, <span style="color:#a6e22e">opts</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">DeleteOption</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Update updates an existing object</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">Object</span>, <span style="color:#a6e22e">opts</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">UpdateOption</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Patch patches an existing object</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Patch</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">Object</span>, <span style="color:#a6e22e">patch</span> <span style="color:#a6e22e">Patch</span>, <span style="color:#a6e22e">opts</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">PatchOption</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// DeleteAllOf deletes all objects matching the given options</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DeleteAllOf</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">Object</span>, <span style="color:#a6e22e">opts</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">DeleteAllOfOption</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="create-operation">Create Operation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Create a Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ObjectMeta</span>: <span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">ObjectMeta</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;my-pod&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Spec</span>: <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">PodSpec</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Containers</span>: []<span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Container</span>{{
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Name</span>:  <span style="color:#e6db74">&#34;nginx&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Image</span>: <span style="color:#e6db74">&#34;nginx:latest&#34;</span>,
+</span></span><span style="display:flex;"><span>        }},
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">pod</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Create with options</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">pod</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">CreateOptions</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">FieldManager</span>: <span style="color:#e6db74">&#34;my-controller&#34;</span>,
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="update-operation">Update Operation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Get the object first</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">pod</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Modify the object</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">Containers</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">Image</span> = <span style="color:#e6db74">&#34;nginx:1.21&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Update</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Update with options</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">UpdateOptions</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">FieldManager</span>: <span style="color:#e6db74">&#34;my-controller&#34;</span>,
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="patch-operation">Patch Operation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Strategic Merge Patch</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">patch</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MergeFrom</span>(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">DeepCopy</span>())
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Labels</span>[<span style="color:#e6db74">&#34;new-label&#34;</span>] = <span style="color:#e6db74">&#34;value&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Patch</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">patch</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// JSON Patch</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">jsonPatch</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">RawPatch</span>(<span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">JSONPatchType</span>, []byte(<span style="color:#e6db74">`[
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    {&#34;op&#34;: &#34;replace&#34;, &#34;path&#34;: &#34;/spec/replicas&#34;, &#34;value&#34;: 3}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">]`</span>))
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Patch</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">deployment</span>, <span style="color:#a6e22e">jsonPatch</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Merge Patch</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mergePatch</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">RawPatch</span>(<span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">MergePatchType</span>, []byte(<span style="color:#e6db74">`{
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;metadata&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;labels&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            &#34;new-label&#34;: &#34;value&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">}`</span>))
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Patch</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">mergePatch</span>)
+</span></span></code></pre></div><h3 id="delete-operation">Delete Operation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Delete a Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ObjectMeta</span>: <span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">ObjectMeta</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;my-pod&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Delete</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">pod</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Delete with options</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Delete</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">pod</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">DeleteOptions</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GracePeriodSeconds</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(int64(<span style="color:#ae81ff">30</span>)),
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">PropagationPolicy</span>:  <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">DeletePropagationForeground</span>),
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// DeleteAllOf - delete all matching objects</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">DeleteAllOf</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">InNamespace</span>(<span style="color:#e6db74">&#34;default&#34;</span>),
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingLabels</span>{<span style="color:#e6db74">&#34;app&#34;</span>: <span style="color:#e6db74">&#34;myapp&#34;</span>})
+</span></span></code></pre></div><h2 id="status-subresource">Status SubResource</h2>
+<p>The StatusClient provides access to the status subresource:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Update status</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">deployment</span> <span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">deployment</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">deployment</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">Replicas</span> = <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">deployment</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">ReadyReplicas</span> = <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Update only the status subresource</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Status</span>().<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">deployment</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Patch status</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">patch</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MergeFrom</span>(<span style="color:#a6e22e">deployment</span>.<span style="color:#a6e22e">DeepCopy</span>())
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">deployment</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">Conditions</span> = append(<span style="color:#a6e22e">deployment</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">Conditions</span>, <span style="color:#a6e22e">condition</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Status</span>().<span style="color:#a6e22e">Patch</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">deployment</span>, <span style="color:#a6e22e">patch</span>)
+</span></span></code></pre></div><h2 id="subresource-client">SubResource Client</h2>
+<p>Access other subresources:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// ServiceAccount token creation</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sa</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">ServiceAccount</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ObjectMeta</span>: <span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">ObjectMeta</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;my-sa&#34;</span>,
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">token</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">authenticationv1</span>.<span style="color:#a6e22e">TokenRequest</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Spec</span>: <span style="color:#a6e22e">authenticationv1</span>.<span style="color:#a6e22e">TokenRequestSpec</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ExpirationSeconds</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(int64(<span style="color:#ae81ff">3600</span>)),
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">SubResource</span>(<span style="color:#e6db74">&#34;token&#34;</span>).<span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">sa</span>, <span style="color:#a6e22e">token</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Pod eviction</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ObjectMeta</span>: <span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">ObjectMeta</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;my-pod&#34;</span>,
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">eviction</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">policyv1</span>.<span style="color:#a6e22e">Eviction</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DeleteOptions</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">DeleteOptions</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">GracePeriodSeconds</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(int64(<span style="color:#ae81ff">30</span>)),
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">SubResource</span>(<span style="color:#e6db74">&#34;eviction&#34;</span>).<span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">eviction</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Scale subresource</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">deployment</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ObjectMeta</span>: <span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">ObjectMeta</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;my-deployment&#34;</span>,
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">scale</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">autoscalingv1</span>.<span style="color:#a6e22e">Scale</span>{}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">SubResource</span>(<span style="color:#e6db74">&#34;scale&#34;</span>).<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">deployment</span>, <span style="color:#a6e22e">scale</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">scale</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">Replicas</span> = <span style="color:#ae81ff">5</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">SubResource</span>(<span style="color:#e6db74">&#34;scale&#34;</span>).<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">deployment</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">WithSubResourceBody</span>(<span style="color:#a6e22e">scale</span>))
+</span></span></code></pre></div><h2 id="client-types">Client Types</h2>
+<h3 id="1-default-split-client">1. Default Split Client</h3>
+<p>The default client reads from cache and writes to API server:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Provided by manager</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">client</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetClient</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Reads come from cache</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">pod</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>) <span style="color:#75715e">// From cache</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Writes go to API server</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>) <span style="color:#75715e">// To API server</span>
+</span></span></code></pre></div><pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+    Client[Split Client]
+    Client --&gt;|Read| Cache[Cache]
+    Client --&gt;|Write| API[API Server]
+    
+    Cache --&gt;|Sync| API
+    
+    style Client fill:#e1f5ff
+    style Cache fill:#fff4e1
+</code></pre><h3 id="2-direct-client-api-reader">2. Direct Client (API Reader)</h3>
+<p>Reads directly from API server, bypassing cache:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Get API reader from manager</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">apiReader</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetAPIReader</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Always reads from API server</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">pod</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">apiReader</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>) <span style="color:#75715e">// From API server, not cache</span>
+</span></span></code></pre></div><p><strong>Use cases</strong>:</p>
+<ul>
+<li>Need most up-to-date data</li>
+<li>Verify cache consistency</li>
+<li>Read resources not in cache</li>
+</ul>
+<h3 id="3-fake-client">3. Fake Client</h3>
+<p>For testing:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client/fake&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Create fake client with initial objects</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">fakeClient</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fake</span>.<span style="color:#a6e22e">NewClientBuilder</span>().
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WithScheme</span>(<span style="color:#a6e22e">scheme</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WithObjects</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod1</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod2</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WithStatusSubresource</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod1</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Build</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Use like a real client</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fakeClient</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">fakeClient</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>)
+</span></span></code></pre></div><h2 id="list-options">List Options</h2>
+<h3 id="namespace-filtering">Namespace Filtering</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Single namespace</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">InNamespace</span>(<span style="color:#e6db74">&#34;default&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// All namespaces (default)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// No namespace option</span>
+</span></span></code></pre></div><h3 id="label-selectors">Label Selectors</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Match specific labels</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingLabels</span>{<span style="color:#e6db74">&#34;app&#34;</span>: <span style="color:#e6db74">&#34;myapp&#34;</span>, <span style="color:#e6db74">&#34;env&#34;</span>: <span style="color:#e6db74">&#34;prod&#34;</span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Label selector</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">selector</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;app=myapp,env!=dev&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingLabelsSelector</span>{<span style="color:#a6e22e">Selector</span>: <span style="color:#a6e22e">selector</span>}
+</span></span></code></pre></div><h3 id="field-selectors">Field Selectors</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Match specific fields</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;spec.nodeName&#34;</span>: <span style="color:#e6db74">&#34;node-1&#34;</span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Field selector</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">selector</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fields</span>.<span style="color:#a6e22e">ParseSelector</span>(<span style="color:#e6db74">&#34;spec.nodeName=node-1&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFieldsSelector</span>{<span style="color:#a6e22e">Selector</span>: <span style="color:#a6e22e">selector</span>}
+</span></span></code></pre></div><h3 id="limit-and-continue">Limit and Continue</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Limit results</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Limit</span>(<span style="color:#ae81ff">100</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Continue token for pagination</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Continue</span>(<span style="color:#e6db74">&#34;token-from-previous-list&#34;</span>)
+</span></span></code></pre></div><h3 id="combined-options">Combined Options</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">InNamespace</span>(<span style="color:#e6db74">&#34;default&#34;</span>),
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingLabels</span>{<span style="color:#e6db74">&#34;app&#34;</span>: <span style="color:#e6db74">&#34;myapp&#34;</span>},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;spec.nodeName&#34;</span>: <span style="color:#e6db74">&#34;node-1&#34;</span>},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Limit</span>(<span style="color:#ae81ff">100</span>))
+</span></span></code></pre></div><h2 id="patch-types">Patch Types</h2>
+<h3 id="strategic-merge-patch">Strategic Merge Patch</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Create patch from original object</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">patch</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MergeFrom</span>(<span style="color:#a6e22e">original</span>.<span style="color:#a6e22e">DeepCopy</span>())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Modify object</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">original</span>.<span style="color:#a6e22e">Labels</span>[<span style="color:#e6db74">&#34;new-label&#34;</span>] = <span style="color:#e6db74">&#34;value&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Apply patch</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Patch</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">original</span>, <span style="color:#a6e22e">patch</span>)
+</span></span></code></pre></div><h3 id="merge-patch">Merge Patch</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// JSON merge patch</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">patch</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">RawPatch</span>(<span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">MergePatchType</span>, []byte(<span style="color:#e6db74">`{
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;metadata&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;labels&#34;: {
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            &#34;new-label&#34;: &#34;value&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    }
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">}`</span>))
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Patch</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">patch</span>)
+</span></span></code></pre></div><h3 id="json-patch">JSON Patch</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// JSON patch operations</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">patch</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">RawPatch</span>(<span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">JSONPatchType</span>, []byte(<span style="color:#e6db74">`[
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    {&#34;op&#34;: &#34;add&#34;, &#34;path&#34;: &#34;/metadata/labels/new-label&#34;, &#34;value&#34;: &#34;value&#34;},
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    {&#34;op&#34;: &#34;replace&#34;, &#34;path&#34;: &#34;/spec/replicas&#34;, &#34;value&#34;: 3}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">]`</span>))
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Patch</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">deployment</span>, <span style="color:#a6e22e">patch</span>)
+</span></span></code></pre></div><h3 id="server-side-apply">Server-Side Apply</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Apply configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">applyConfig</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">appsv1ac</span>.<span style="color:#a6e22e">Deployment</span>(<span style="color:#e6db74">&#34;my-deployment&#34;</span>, <span style="color:#e6db74">&#34;default&#34;</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WithSpec</span>(<span style="color:#a6e22e">appsv1ac</span>.<span style="color:#a6e22e">DeploymentSpec</span>().
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">WithReplicas</span>(<span style="color:#ae81ff">3</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Apply</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">applyConfig</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">ForceOwnership</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">FieldOwner</span>(<span style="color:#e6db74">&#34;my-controller&#34;</span>))
+</span></span></code></pre></div><h2 id="field-indexing">Field Indexing</h2>
+<p>Add indexes to the cache for efficient lookups:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Add index on Pod&#39;s spec.nodeName field</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetFieldIndexer</span>().<span style="color:#a6e22e">IndexField</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#e6db74">&#34;spec.nodeName&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> []<span style="color:#66d9ef">string</span>{<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">NodeName</span>}
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// List Pods on a specific node using the index</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">podList</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">PodList</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;spec.nodeName&#34;</span>: <span style="color:#e6db74">&#34;node-1&#34;</span>})
+</span></span></code></pre></div><h2 id="client-interceptors">Client Interceptors</h2>
+<p>Intercept client operations for logging, metrics, etc.:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client/interceptor&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Create interceptor</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">funcs</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">interceptor</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Get</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">client</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">WithWatch</span>, <span style="color:#a6e22e">key</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">ObjectKey</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>, <span style="color:#a6e22e">opts</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">GetOption</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;Getting object&#34;</span>, <span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#a6e22e">key</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">opts</span><span style="color:#f92672">...</span>)
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Create client with interceptor</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">NewWithWatch</span>(<span style="color:#a6e22e">config</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Scheme</span>: <span style="color:#a6e22e">scheme</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Interceptor</span>: <span style="color:#a6e22e">funcs</span>,
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h2 id="best-practices">Best Practices</h2>
+<h3 id="1-use-context">1. Use Context</h3>
+<p>Always pass context for cancellation and timeouts:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">cancel</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">WithTimeout</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#ae81ff">30</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">cancel</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>)
+</span></span></code></pre></div><h3 id="2-handle-not-found-errors">2. Handle Not Found Errors</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">apierrors</span>.<span style="color:#a6e22e">IsNotFound</span>(<span style="color:#a6e22e">err</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Object doesn&#39;t exist</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Or use helper</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">return</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">IgnoreNotFound</span>(<span style="color:#a6e22e">err</span>)
+</span></span></code></pre></div><h3 id="3-use-patch-instead-of-update">3. Use Patch Instead of Update</h3>
+<p>Patches are more efficient and avoid conflicts:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Instead of Get + Modify + Update</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">patch</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MergeFrom</span>(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">DeepCopy</span>())
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Labels</span>[<span style="color:#e6db74">&#34;key&#34;</span>] = <span style="color:#e6db74">&#34;value&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Patch</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">patch</span>)
+</span></span></code></pre></div><h3 id="4-update-status-separately">4. Update Status Separately</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Update spec</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">obj</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Update status</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Status</span>().<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">obj</span>)
+</span></span></code></pre></div><h3 id="5-use-field-selectors-for-indexed-fields">5. Use Field Selectors for Indexed Fields</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Add index first</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetFieldIndexer</span>().<span style="color:#a6e22e">IndexField</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#e6db74">&#34;spec.nodeName&#34;</span>, <span style="color:#a6e22e">indexFunc</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Then use field selector</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;spec.nodeName&#34;</span>: <span style="color:#e6db74">&#34;node-1&#34;</span>})
+</span></span></code></pre></div><h3 id="6-use-fake-client-for-testing">6. Use Fake Client for Testing</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">fakeClient</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fake</span>.<span style="color:#a6e22e">NewClientBuilder</span>().
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WithScheme</span>(<span style="color:#a6e22e">scheme</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WithObjects</span>(<span style="color:#a6e22e">initialObjects</span><span style="color:#f92672">...</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Build</span>()
+</span></span></code></pre></div><h2 id="common-patterns">Common Patterns</h2>
+<h3 id="create-or-update">Create or Update</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/controller/controllerutil&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">CreateOrUpdate</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">obj</span>, <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Mutate obj here</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">Replicas</span> = <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(int32(<span style="color:#ae81ff">3</span>))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// op is one of: Created, Updated, Unchanged</span>
+</span></span></code></pre></div><h3 id="create-or-patch">Create or Patch</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">CreateOrPatch</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">obj</span>, <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Mutate obj here</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">Labels</span>[<span style="color:#e6db74">&#34;key&#34;</span>] = <span style="color:#e6db74">&#34;value&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="list-and-process">List and Process</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">podList</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">PodList</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">InNamespace</span>(<span style="color:#e6db74">&#34;default&#34;</span>))
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">podList</span>.<span style="color:#a6e22e">Items</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Process each pod</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="pagination">Pagination</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">continueToken</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">podList</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">PodList</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Limit</span>(<span style="color:#ae81ff">100</span>),
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Continue</span>(<span style="color:#a6e22e">continueToken</span>))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Process pods</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">podList</span>.<span style="color:#a6e22e">Items</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// ...</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">continueToken</span> = <span style="color:#a6e22e">podList</span>.<span style="color:#a6e22e">Continue</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">continueToken</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="related-packages">Related Packages</h2>
+<ul>
+<li><a href="./06-cache.md">Cache Package</a> - Provides cached reads</li>
+<li><a href="./01-manager.md">Manager Package</a> - Provides client instances</li>
+<li><a href="./03-reconcile.md">Reconcile Package</a> - Uses client for reconciliation</li>
+</ul>
+
+        
+        
+    </div>
+</article>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache | Controller-Runtime Documentation</title>
+    <meta name="description" content="Comprehensive documentation for Kubernetes controller-runtime">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container" id="app">
+        
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="menu-toggle" id="menuToggle" title="Toggle Menu">
+                    <span class="hamburger"></span>
+                </button>
+                <h1 class="site-title">
+                    <a href="/">Controller-Runtime Documentation</a>
+                </h1>
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav" id="sidebarNav">
+                <ul class="menu-list">
+    
+    
+        
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/00-overview/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Architecture</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/01-manager/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Manager</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/02-controller/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Controller</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/03-reconcile/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Reconcile</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/04-builder/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Builder</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/05-client/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Client</span>
+                </a>
+            </li>
+            
+            <li class="menu-item active">
+                <a href="http://localhost:9005/docs/06-cache/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Cache</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/07-source/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Source</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/08-handler/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Handler</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/09-predicate/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Predicate</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/10-webhook/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Webhook</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/11-additional-packages/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Additional Packages</span>
+                </a>
+            </li>
+            
+        
+    
+</ul>
+
+            </nav>
+        </aside>
+
+        
+        <div class="resize-handle" id="resizeHandle"></div>
+
+        
+        <main class="main-content">
+            <div class="content-wrapper">
+                
+<article class="doc-content">
+    <header class="doc-header">
+        <h1>Cache</h1>
+    </header>
+    
+    <div class="doc-body">
+        <h2 id="overview">Overview</h2>
+<p>The <code>pkg/cache</code> package provides an in-memory cache of Kubernetes objects backed by informers. The cache reduces load on the API server and improves controller performance by serving read requests from local memory.</p>
+<h2 id="package-location">Package Location</h2>
+<pre tabindex="0"><code>pkg/cache/
+├── cache.go                # Cache interface and implementation
+├── informer_cache.go       # Informer-based cache
+├── multi_namespace_cache.go # Multi-namespace cache
+├── delegating_by_gvk_cache.go # GVK-based cache delegation
+└── internal/               # Internal implementation
+</code></pre><h2 id="core-concepts">Core Concepts</h2>
+<h3 id="cache-architecture">Cache Architecture</h3>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-a50eab039248.svg" alt="Diagram" />
+</div>
+<h2 id="cache-interface">Cache Interface</h2>
+<p>The Cache interface combines Reader and Informers:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Cache</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Reader interface for reading objects</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Reader</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Informers interface for managing informers</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Informers</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Informers</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetInformer fetches or constructs an informer</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetInformer</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>, <span style="color:#a6e22e">opts</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">InformerGetOption</span>) (<span style="color:#a6e22e">Informer</span>, <span style="color:#66d9ef">error</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetInformerForKind fetches an informer by GVK</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetInformerForKind</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">gvk</span> <span style="color:#a6e22e">schema</span>.<span style="color:#a6e22e">GroupVersionKind</span>, <span style="color:#a6e22e">opts</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">InformerGetOption</span>) (<span style="color:#a6e22e">Informer</span>, <span style="color:#66d9ef">error</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// RemoveInformer removes and stops an informer</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">RemoveInformer</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Start runs all informers</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// WaitForCacheSync waits for all caches to sync</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WaitForCacheSync</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// FieldIndexer for adding field indexes</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">FieldIndexer</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="creating-a-cache">Creating a Cache</h2>
+<h3 id="basic-cache-creation">Basic Cache Creation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/cache&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client/config&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Create a cache</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">GetConfigOrDie</span>(), <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Scheme</span>: <span style="color:#a6e22e">scheme</span>,
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Start the cache</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Handle error</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Wait for cache to sync</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">WaitForCacheSync</span>(<span style="color:#a6e22e">ctx</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Cache didn&#39;t sync</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="cache-from-manager">Cache from Manager</h3>
+<p>The manager automatically creates and manages a cache:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Cache</span>: <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Cache configuration</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Get the cache</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>()
+</span></span></code></pre></div><h2 id="cache-options">Cache Options</h2>
+<h3 id="namespace-filtering">Namespace Filtering</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Watch specific namespaces</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DefaultNamespaces</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Config</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;namespace1&#34;</span>: {},
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;namespace2&#34;</span>: {},
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Watch all namespaces (default)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// No DefaultNamespaces specified</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="label-and-field-selectors">Label and Field Selectors</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Global label selector for all resources</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DefaultLabelSelector</span>: <span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">SelectorFromSet</span>(<span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">Set</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;managed-by&#34;</span>: <span style="color:#e6db74">&#34;my-controller&#34;</span>,
+</span></span><span style="display:flex;"><span>    }),
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Per-resource selectors</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ByObject</span>: <span style="color:#66d9ef">map</span>[<span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>]<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">ByObject</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}: {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Label</span>: <span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">SelectorFromSet</span>(<span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">Set</span>{<span style="color:#e6db74">&#34;app&#34;</span>: <span style="color:#e6db74">&#34;myapp&#34;</span>}),
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Field</span>: <span style="color:#a6e22e">fields</span>.<span style="color:#a6e22e">SelectorFromSet</span>(<span style="color:#a6e22e">fields</span>.<span style="color:#a6e22e">Set</span>{<span style="color:#e6db74">&#34;spec.nodeName&#34;</span>: <span style="color:#e6db74">&#34;node-1&#34;</span>}),
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="transform-functions">Transform Functions</h3>
+<p>Reduce memory usage by transforming objects before caching:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DefaultTransform</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Remove unnecessary fields</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>); <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">ManagedFields</span> = <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Annotations</span> = <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Per-resource transforms</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ByObject</span>: <span style="color:#66d9ef">map</span>[<span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>]<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">ByObject</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}: {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Transform</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// Custom transform for Pods</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="sync-period">Sync Period</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Set sync period (default: 10 hours)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">SyncPeriod</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#ae81ff">5</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span>),
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="namespace-specific-configuration">Namespace-Specific Configuration</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DefaultNamespaces</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Config</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;namespace1&#34;</span>: {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">LabelSelector</span>: <span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">SelectorFromSet</span>(<span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">Set</span>{<span style="color:#e6db74">&#34;env&#34;</span>: <span style="color:#e6db74">&#34;prod&#34;</span>}),
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">FieldSelector</span>: <span style="color:#a6e22e">fields</span>.<span style="color:#a6e22e">SelectorFromSet</span>(<span style="color:#a6e22e">fields</span>.<span style="color:#a6e22e">Set</span>{<span style="color:#e6db74">&#34;status.phase&#34;</span>: <span style="color:#e6db74">&#34;Running&#34;</span>}),
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;namespace2&#34;</span>: {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">LabelSelector</span>: <span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">SelectorFromSet</span>(<span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">Set</span>{<span style="color:#e6db74">&#34;env&#34;</span>: <span style="color:#e6db74">&#34;dev&#34;</span>}),
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="reading-from-cache">Reading from Cache</h2>
+<h3 id="get-operation">Get Operation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Get a Pod from cache</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">pod</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;my-pod&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>)
+</span></span></code></pre></div><h3 id="list-operation">List Operation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// List all Pods from cache</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">podList</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">PodList</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">ListOptions</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// List with label selector</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">InNamespace</span>(<span style="color:#e6db74">&#34;default&#34;</span>),
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingLabels</span>{<span style="color:#e6db74">&#34;app&#34;</span>: <span style="color:#e6db74">&#34;myapp&#34;</span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// List with field selector (requires index)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;spec.nodeName&#34;</span>: <span style="color:#e6db74">&#34;node-1&#34;</span>})
+</span></span></code></pre></div><h2 id="field-indexing">Field Indexing</h2>
+<p>Field indexes enable efficient lookups by field values:</p>
+<h3 id="adding-an-index">Adding an Index</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Index Pods by node name</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">IndexField</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#e6db74">&#34;spec.nodeName&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">NodeName</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> []<span style="color:#66d9ef">string</span>{<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">NodeName</span>}
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Index Pods by owner reference</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">IndexField</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#e6db74">&#34;owner&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">owners</span> []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ref</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">OwnerReferences</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">owners</span> = append(<span style="color:#a6e22e">owners</span>, string(<span style="color:#a6e22e">ref</span>.<span style="color:#a6e22e">UID</span>))
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">owners</span>
+</span></span><span style="display:flex;"><span>    })
+</span></span></code></pre></div><h3 id="using-an-index">Using an Index</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// List Pods on a specific node using the index</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">podList</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">PodList</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;spec.nodeName&#34;</span>: <span style="color:#e6db74">&#34;node-1&#34;</span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// List Pods owned by a specific object</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;owner&#34;</span>: string(<span style="color:#a6e22e">owner</span>.<span style="color:#a6e22e">UID</span>)})
+</span></span></code></pre></div><h3 id="common-indexes">Common Indexes</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Index by owner reference</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">IndexField</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#e6db74">&#34;.metadata.ownerReferences.uid&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">uids</span> []<span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ref</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">OwnerReferences</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">uids</span> = append(<span style="color:#a6e22e">uids</span>, string(<span style="color:#a6e22e">ref</span>.<span style="color:#a6e22e">UID</span>))
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">uids</span>
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Index by label</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">IndexField</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#e6db74">&#34;.metadata.labels.app&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">app</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Labels</span>[<span style="color:#e6db74">&#34;app&#34;</span>]; <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> []<span style="color:#66d9ef">string</span>{<span style="color:#a6e22e">app</span>}
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Index by status field</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">IndexField</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#e6db74">&#34;.status.phase&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> []<span style="color:#66d9ef">string</span>{string(<span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">Phase</span>)}
+</span></span><span style="display:flex;"><span>    })
+</span></span></code></pre></div><h2 id="informers">Informers</h2>
+<h3 id="getting-an-informer">Getting an Informer</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Get informer for a resource type</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">informer</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">GetInformer</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Get informer by GVK</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gvk</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">schema</span>.<span style="color:#a6e22e">GroupVersionKind</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Group</span>:   <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Version</span>: <span style="color:#e6db74">&#34;v1&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Kind</span>:    <span style="color:#e6db74">&#34;Pod&#34;</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">informer</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">GetInformerForKind</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">gvk</span>)
+</span></span></code></pre></div><h3 id="using-informers">Using Informers</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Add event handler to informer</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">registration</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">informer</span>.<span style="color:#a6e22e">AddEventHandler</span>(<span style="color:#a6e22e">toolscache</span>.<span style="color:#a6e22e">ResourceEventHandlerFuncs</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">AddFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Handle add</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">UpdateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">oldObj</span>, <span style="color:#a6e22e">newObj</span> <span style="color:#66d9ef">interface</span>{}) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Handle update</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DeleteFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Handle delete</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Remove event handler</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">informer</span>.<span style="color:#a6e22e">RemoveEventHandler</span>(<span style="color:#a6e22e">registration</span>)
+</span></span></code></pre></div><h3 id="informer-options">Informer Options</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Block until informer is synced</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">informer</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">GetInformer</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">BlockUntilSynced</span>(<span style="color:#66d9ef">true</span>))
+</span></span></code></pre></div><h2 id="cache-lifecycle">Cache Lifecycle</h2>
+<h3 id="starting-the-cache">Starting the Cache</h3>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-7380c3df152b.svg" alt="Diagram" />
+</div>
+<h3 id="waiting-for-sync">Waiting for Sync</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Start cache</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;cache start failed&#34;</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Wait for cache to sync (with timeout)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">syncCtx</span>, <span style="color:#a6e22e">cancel</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">WithTimeout</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">cancel</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">WaitForCacheSync</span>(<span style="color:#a6e22e">syncCtx</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#66d9ef">nil</span>, <span style="color:#e6db74">&#34;cache sync timeout&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="multi-namespace-cache">Multi-Namespace Cache</h2>
+<p>For watching specific namespaces:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DefaultNamespaces</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Config</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;namespace1&#34;</span>: {},
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;namespace2&#34;</span>: {},
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;namespace3&#34;</span>: {},
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="all-namespaces">All Namespaces</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Watch all namespaces</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DefaultNamespaces</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Config</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">AllNamespaces</span>: {},
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Or simply don&#39;t specify DefaultNamespaces</span>
+</span></span></code></pre></div><h2 id="cache-patterns">Cache Patterns</h2>
+<h3 id="1-namespace-scoped-cache">1. Namespace-Scoped Cache</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Cache</span>: <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">DefaultNamespaces</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Config</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;my-namespace&#34;</span>: {},
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="2-label-filtered-cache">2. Label-Filtered Cache</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Cache</span>: <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">DefaultLabelSelector</span>: <span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">SelectorFromSet</span>(<span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">Set</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;managed-by&#34;</span>: <span style="color:#e6db74">&#34;my-controller&#34;</span>,
+</span></span><span style="display:flex;"><span>        }),
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="3-resource-specific-configuration">3. Resource-Specific Configuration</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Cache</span>: <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ByObject</span>: <span style="color:#66d9ef">map</span>[<span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>]<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">ByObject</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}: {
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Label</span>: <span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">SelectorFromSet</span>(<span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">Set</span>{<span style="color:#e6db74">&#34;app&#34;</span>: <span style="color:#e6db74">&#34;myapp&#34;</span>}),
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Namespaces</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Config</span>{
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">&#34;namespace1&#34;</span>: {},
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">&#34;namespace2&#34;</span>: {},
+</span></span><span style="display:flex;"><span>                },
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">ConfigMap</span>{}: {
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Transform</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// Remove data to save memory</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">cm</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">ConfigMap</span>); <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>                        <span style="color:#a6e22e">cm</span>.<span style="color:#a6e22e">Data</span> = <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#a6e22e">cm</span>.<span style="color:#a6e22e">BinaryData</span> = <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>                    }
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>                },
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="4-memory-optimized-cache">4. Memory-Optimized Cache</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Cache</span>: <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">DefaultTransform</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// Remove unnecessary fields to reduce memory</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">accessor</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">Accessor</span>(<span style="color:#a6e22e">obj</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">accessor</span>.<span style="color:#a6e22e">SetManagedFields</span>(<span style="color:#66d9ef">nil</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// Remove other unnecessary fields</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h2 id="cache-consistency">Cache Consistency</h2>
+<h3 id="read-after-write-consistency">Read-After-Write Consistency</h3>
+<p>The cache does NOT guarantee read-after-write consistency:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Create a Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// This Get might not see the pod immediately!</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>)
+</span></span></code></pre></div><p><strong>Solution</strong>: Use the API reader for immediate consistency:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Create a Pod</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Read directly from API server</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">apiReader</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetAPIReader</span>()
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">apiReader</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>) <span style="color:#75715e">// Guaranteed to see the pod</span>
+</span></span></code></pre></div><h3 id="cache-invalidation">Cache Invalidation</h3>
+<p>The cache is eventually consistent with the API server:</p>
+<ul>
+<li>Updates from API server are reflected via watch events</li>
+<li>Periodic re-sync ensures consistency (default: 10 hours)</li>
+<li>No manual invalidation needed</li>
+</ul>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="1-use-namespace-filtering">1. Use Namespace Filtering</h3>
+<p>Reduce memory usage by watching only needed namespaces:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DefaultNamespaces</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Config</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;my-namespace&#34;</span>: {},
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="2-use-label-selectors">2. Use Label Selectors</h3>
+<p>Filter objects at the cache level:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DefaultLabelSelector</span>: <span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">SelectorFromSet</span>(<span style="color:#a6e22e">labels</span>.<span style="color:#a6e22e">Set</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;managed-by&#34;</span>: <span style="color:#e6db74">&#34;my-controller&#34;</span>,
+</span></span><span style="display:flex;"><span>    }),
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="3-add-indexes-for-frequent-lookups">3. Add Indexes for Frequent Lookups</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Add index for efficient lookups</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">IndexField</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#e6db74">&#34;spec.nodeName&#34;</span>, <span style="color:#a6e22e">indexFunc</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Use the index</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;spec.nodeName&#34;</span>: <span style="color:#e6db74">&#34;node-1&#34;</span>})
+</span></span></code></pre></div><h3 id="4-use-transform-functions">4. Use Transform Functions</h3>
+<p>Reduce memory for large objects:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DefaultTransform</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#66d9ef">interface</span>{}) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Remove unnecessary fields</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="5-wait-for-cache-sync">5. Wait for Cache Sync</h3>
+<p>Always wait for cache sync before using:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">WaitForCacheSync</span>(<span style="color:#a6e22e">ctx</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;cache sync failed&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="6-use-api-reader-for-critical-reads">6. Use API Reader for Critical Reads</h3>
+<p>When you need the latest data:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Use API reader instead of cache</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">apiReader</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetAPIReader</span>()
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">apiReader</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">obj</span>)
+</span></span></code></pre></div><h2 id="common-pitfalls">Common Pitfalls</h2>
+<h3 id="1-not-waiting-for-cache-sync">1. Not Waiting for Cache Sync</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// BAD - reading before cache is synced</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">obj</span>) <span style="color:#75715e">// May fail or return stale data</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// GOOD - wait for sync</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">WaitForCacheSync</span>(<span style="color:#a6e22e">ctx</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">obj</span>)
+</span></span></code></pre></div><h3 id="2-expecting-immediate-consistency">2. Expecting Immediate Consistency</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// BAD - expecting immediate consistency</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">obj</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">obj</span>) <span style="color:#75715e">// May not see the object</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// GOOD - use API reader</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">obj</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">apiReader</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">obj</span>) <span style="color:#75715e">// Guaranteed to see it</span>
+</span></span></code></pre></div><h3 id="3-not-using-indexes">3. Not Using Indexes</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// BAD - inefficient without index</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">podList</span>.<span style="color:#a6e22e">Items</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">NodeName</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;node-1&#34;</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Process pod</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// GOOD - use index</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">IndexField</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#e6db74">&#34;spec.nodeName&#34;</span>, <span style="color:#a6e22e">indexFunc</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podList</span>, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">MatchingFields</span>{<span style="color:#e6db74">&#34;spec.nodeName&#34;</span>: <span style="color:#e6db74">&#34;node-1&#34;</span>})
+</span></span></code></pre></div><h2 id="performance-considerations">Performance Considerations</h2>
+<h3 id="memory-usage">Memory Usage</h3>
+<ul>
+<li>Each cached object consumes memory</li>
+<li>Use namespace filtering to reduce objects</li>
+<li>Use label selectors to filter objects</li>
+<li>Use transform functions to remove unnecessary fields</li>
+<li>Consider metadata-only watches for large objects</li>
+</ul>
+<h3 id="cpu-usage">CPU Usage</h3>
+<ul>
+<li>Informers use CPU for processing watch events</li>
+<li>More informers = more CPU usage</li>
+<li>Sync period affects CPU (shorter = more CPU)</li>
+</ul>
+<h3 id="network-usage">Network Usage</h3>
+<ul>
+<li>Initial list operation can be large</li>
+<li>Watch events are incremental</li>
+<li>Sync period affects network usage</li>
+</ul>
+<h2 id="related-packages">Related Packages</h2>
+<ul>
+<li><a href="/docs/05-client/">Client Package</a> - Uses cache for reads</li>
+<li><a href="/docs/01-manager/">Manager Package</a> - Creates and manages cache</li>
+<li><a href="/docs/02-controller/">Controller Package</a> - Uses cache via sources</li>
+</ul>
+
+        
+        
+    </div>
+</article>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

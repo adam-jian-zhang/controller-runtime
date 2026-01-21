@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controller | Controller-Runtime Documentation</title>
+    <meta name="description" content="Comprehensive documentation for Kubernetes controller-runtime">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container" id="app">
+        
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="menu-toggle" id="menuToggle" title="Toggle Menu">
+                    <span class="hamburger"></span>
+                </button>
+                <h1 class="site-title">
+                    <a href="/">Controller-Runtime Documentation</a>
+                </h1>
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav" id="sidebarNav">
+                <ul class="menu-list">
+    
+    
+        
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/00-overview/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Architecture</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/01-manager/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Manager</span>
+                </a>
+            </li>
+            
+            <li class="menu-item active">
+                <a href="http://localhost:9005/docs/02-controller/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Controller</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/03-reconcile/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Reconcile</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/04-builder/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Builder</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/05-client/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Client</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/06-cache/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Cache</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/07-source/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Source</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/08-handler/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Handler</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/09-predicate/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Predicate</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/10-webhook/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Webhook</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/11-additional-packages/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Additional Packages</span>
+                </a>
+            </li>
+            
+        
+    
+</ul>
+
+            </nav>
+        </aside>
+
+        
+        <div class="resize-handle" id="resizeHandle"></div>
+
+        
+        <main class="main-content">
+            <div class="content-wrapper">
+                
+<article class="doc-content">
+    <header class="doc-header">
+        <h1>Controller</h1>
+    </header>
+    
+    <div class="doc-body">
+        <h2 id="overview">Overview</h2>
+<p>The <code>pkg/controller</code> package provides the core Controller implementation that watches Kubernetes resources, manages work queues, and invokes reconcilers. Controllers are the heart of the controller-runtime framework.</p>
+<h2 id="package-location">Package Location</h2>
+<pre tabindex="0"><code>pkg/controller/
+├── controller.go           # Controller interface and options
+├── doc.go                  # Package documentation
+├── controllerutil/         # Controller utilities (finalizers, owner references)
+├── controllertest/         # Testing utilities
+├── priorityqueue/          # Priority queue implementation
+└── testdata/               # Test data
+</code></pre><h2 id="core-concepts">Core Concepts</h2>
+<h3 id="controller-architecture">Controller Architecture</h3>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-c9130ae52b8e.svg" alt="Diagram" />
+</div>
+<h2 id="controller-interface">Controller Interface</h2>
+<p>The Controller interface defines the contract for all controllers:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Controller</span> = <span style="color:#a6e22e">TypedController</span>[<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">TypedController</span>[<span style="color:#a6e22e">request</span> <span style="color:#a6e22e">comparable</span>] <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Reconciler is the reconciler that will be called for each request</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">TypedReconciler</span>[<span style="color:#a6e22e">request</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Watch watches a source of events and enqueues requests</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Watch</span>(<span style="color:#a6e22e">src</span> <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">TypedSource</span>[<span style="color:#a6e22e">request</span>]) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Start starts the controller and blocks until the context is cancelled</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetLogger returns the controller&#39;s logger</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetLogger</span>() <span style="color:#a6e22e">logr</span>.<span style="color:#a6e22e">Logger</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="controller-options">Controller Options</h2>
+<p>Controllers are configured using the <code>TypedOptions</code> struct:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">TypedOptions</span>[<span style="color:#a6e22e">request</span> <span style="color:#a6e22e">comparable</span>] <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// SkipNameValidation allows skipping unique name validation</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">SkipNameValidation</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// MaxConcurrentReconciles is the maximum number of concurrent reconciles</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Default: 1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">MaxConcurrentReconciles</span> <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// CacheSyncTimeout is the timeout for waiting for cache sync</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Default: 2 minutes</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">CacheSyncTimeout</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// RecoverPanic indicates whether to recover from panics in reconcilers</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Default: true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">RecoverPanic</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// NeedLeaderElection indicates if the controller needs leader election</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Default: true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">NeedLeaderElection</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Reconciler is the reconciler implementation</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Reconciler</span> <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">TypedReconciler</span>[<span style="color:#a6e22e">request</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// RateLimiter for the work queue</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">RateLimiter</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">TypedRateLimiter</span>[<span style="color:#a6e22e">request</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// NewQueue constructs a custom queue</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">NewQueue</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">controllerName</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">rateLimiter</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">TypedRateLimiter</span>[<span style="color:#a6e22e">request</span>]) <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">TypedRateLimitingInterface</span>[<span style="color:#a6e22e">request</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Logger for the controller</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Logger</span> <span style="color:#a6e22e">logr</span>.<span style="color:#a6e22e">Logger</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// LogConstructor constructs a logger for each reconciliation</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LogConstructor</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">request</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">request</span>) <span style="color:#a6e22e">logr</span>.<span style="color:#a6e22e">Logger</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// UsePriorityQueue enables the priority queue</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Default: true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">UsePriorityQueue</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// EnableWarmup starts sources before leader election</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Default: false</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">EnableWarmup</span> <span style="color:#f92672">*</span><span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="creating-controllers">Creating Controllers</h2>
+<h3 id="using-the-builder-recommended">Using the Builder (Recommended)</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ctrl</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/controller&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Create controller using builder</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WithOptions</span>(<span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">MaxConcurrentReconciles</span>: <span style="color:#ae81ff">5</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">RecoverPanic</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#66d9ef">true</span>),
+</span></span><span style="display:flex;"><span>    }).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Complete</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyReconciler</span>{})
+</span></span></code></pre></div><h3 id="direct-creation">Direct Creation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/controller&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Create controller directly</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;my-controller&#34;</span>, <span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Reconciler</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyReconciler</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">MaxConcurrentReconciles</span>: <span style="color:#ae81ff">3</span>,
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Add watches manually</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Watch</span>(<span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>(<span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>(), <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, 
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{}))
+</span></span></code></pre></div><h2 id="work-queue">Work Queue</h2>
+<h3 id="queue-types">Queue Types</h3>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-86236bf2c807.svg" alt="Diagram" />
+</div>
+<h3 id="standard-queue-behavior">Standard Queue Behavior</h3>
+<p>The default queue provides:</p>
+<ul>
+<li><strong>Deduplication</strong>: Identical requests are deduplicated while in the queue</li>
+<li><strong>Rate limiting</strong>: Exponential backoff for failed reconciliations</li>
+<li><strong>Ordered processing</strong>: FIFO order (or priority-based with priority queue)</li>
+</ul>
+<h3 id="priority-queue">Priority Queue</h3>
+<p>The priority queue allows prioritizing certain reconciliation requests:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Enable priority queue (enabled by default)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WithOptions</span>(<span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">UsePriorityQueue</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#66d9ef">true</span>),
+</span></span><span style="display:flex;"><span>    }).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Complete</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyReconciler</span>{})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Return priority in reconcile result</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyReconciler</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// High priority items will be processed first</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Priority</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#ae81ff">100</span>), <span style="color:#75715e">// Higher number = higher priority</span>
+</span></span><span style="display:flex;"><span>    }, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="concurrency-control">Concurrency Control</h2>
+<h3 id="worker-goroutines">Worker Goroutines</h3>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-651af16ceab4.svg" alt="Diagram" />
+</div>
+<h3 id="configuring-concurrency">Configuring Concurrency</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Single worker (default)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">MaxConcurrentReconciles</span>: <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Multiple workers for high throughput</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">MaxConcurrentReconciles</span>: <span style="color:#ae81ff">10</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="concurrency-considerations">Concurrency Considerations</h3>
+<ul>
+<li><strong>Thread safety</strong>: Reconcilers must be thread-safe when <code>MaxConcurrentReconciles &gt; 1</code></li>
+<li><strong>Resource contention</strong>: More workers = more API server load</li>
+<li><strong>Ordering</strong>: Multiple workers may process requests out of order</li>
+<li><strong>Best practice</strong>: Start with 1, increase only if needed</li>
+</ul>
+<h2 id="watch-sources">Watch Sources</h2>
+<p>Controllers watch sources of events using the <code>Watch</code> method:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Watch Pods</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Watch</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>(<span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>(), <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{}),
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Watch with predicates</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Watch</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>(<span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>(), <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{},
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{}),
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h2 id="rate-limiting">Rate Limiting</h2>
+<h3 id="default-rate-limiter">Default Rate Limiter</h3>
+<p>The default rate limiter combines:</p>
+<ol>
+<li><strong>Per-item exponential backoff</strong>: Retries with increasing delays (up to max)</li>
+<li><strong>Overall rate limiting</strong>: Token bucket for overall throughput</li>
+</ol>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-440e2e4fb0e8.svg" alt="Diagram" />
+</div>
+<h3 id="custom-rate-limiter">Custom Rate Limiter</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;k8s.io/client-go/util/workqueue&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Custom rate limiter</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">rateLimiter</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">NewItemExponentialFailureRateLimiter</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">100</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>, <span style="color:#75715e">// Base delay</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">1</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span>,        <span style="color:#75715e">// Max delay</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WithOptions</span>(<span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">RateLimiter</span>: <span style="color:#a6e22e">rateLimiter</span>,
+</span></span><span style="display:flex;"><span>    }).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Complete</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyReconciler</span>{})
+</span></span></code></pre></div><h2 id="error-handling">Error Handling</h2>
+<h3 id="reconcile-error-behavior">Reconcile Error Behavior</h3>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-a08165d38e8c.svg" alt="Diagram" />
+</div>
+<h3 id="error-handling-patterns">Error Handling Patterns</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyReconciler</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 1. Transient error - will be retried with backoff</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">doSomething</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 2. Requeue after specific duration (no error)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{<span style="color:#a6e22e">RequeueAfter</span>: <span style="color:#ae81ff">5</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span>}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 3. Terminal error - no retry</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">validate</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">TerminalError</span>(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 4. Success - no requeue</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="panic-recovery">Panic Recovery</h2>
+<p>Controllers can recover from panics in reconcilers:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">RecoverPanic</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#66d9ef">true</span>), <span style="color:#75715e">// Default: true</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>When a panic occurs:</p>
+<ol>
+<li>The panic is caught and logged</li>
+<li>The request is requeued with rate limiting</li>
+<li>The worker continues processing other requests</li>
+</ol>
+<h2 id="cache-synchronization">Cache Synchronization</h2>
+<h3 id="waiting-for-cache-sync">Waiting for Cache Sync</h3>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-7de2925a346d.svg" alt="Diagram" />
+</div>
+<h3 id="cache-sync-timeout">Cache Sync Timeout</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">CacheSyncTimeout</span>: <span style="color:#ae81ff">5</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span>, <span style="color:#75715e">// Default: 2 minutes</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="leader-election">Leader Election</h2>
+<h3 id="controller-leader-election-modes">Controller Leader Election Modes</h3>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-cc3447a14915.svg" alt="Diagram" />
+</div>
+<h3 id="configuring-leader-election">Configuring Leader Election</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Controller requires leader election (default)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">NeedLeaderElection</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#66d9ef">true</span>),
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Controller runs without leader election</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// (useful for webhooks, informers, etc.)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">NeedLeaderElection</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#66d9ef">false</span>),
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="warmup-mode">Warmup Mode</h2>
+<p>Warmup mode allows controllers to start their watch sources before being elected leader:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">EnableWarmup</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#66d9ef">true</span>),
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>Benefits</strong>:</p>
+<ul>
+<li>Cache is populated before becoming leader</li>
+<li>Faster reconciliation when elected</li>
+<li>Reduced startup time</li>
+</ul>
+<p><strong>Use cases</strong>:</p>
+<ul>
+<li>Large clusters with many resources</li>
+<li>Controllers with slow-starting sources</li>
+<li>High-availability setups</li>
+</ul>
+<h2 id="controller-utilities">Controller Utilities</h2>
+<h3 id="finalizers">Finalizers</h3>
+<p>The <code>controllerutil</code> package provides utilities for managing finalizers:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/controller/controllerutil&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Add finalizer</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">AddFinalizer</span>(<span style="color:#a6e22e">obj</span>, <span style="color:#e6db74">&#34;my-finalizer&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Remove finalizer</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">RemoveFinalizer</span>(<span style="color:#a6e22e">obj</span>, <span style="color:#e6db74">&#34;my-finalizer&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Check if finalizer exists</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">ContainsFinalizer</span>(<span style="color:#a6e22e">obj</span>, <span style="color:#e6db74">&#34;my-finalizer&#34;</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Finalizer exists</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="owner-references">Owner References</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Set controller reference</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">SetControllerReference</span>(<span style="color:#a6e22e">owner</span>, <span style="color:#a6e22e">controlled</span>, <span style="color:#a6e22e">scheme</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Set owner reference (non-controller)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">SetOwnerReference</span>(<span style="color:#a6e22e">owner</span>, <span style="color:#a6e22e">controlled</span>, <span style="color:#a6e22e">scheme</span>)
+</span></span></code></pre></div><h3 id="createorupdate-pattern">CreateOrUpdate Pattern</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// CreateOrUpdate creates or updates a resource</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">CreateOrUpdate</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">client</span>, <span style="color:#a6e22e">obj</span>, <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Mutate the object</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">Replicas</span> = <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(int32(<span style="color:#ae81ff">3</span>))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// op is one of: Created, Updated, Unchanged</span>
+</span></span></code></pre></div><h3 id="createorpatch-pattern">CreateOrPatch Pattern</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// CreateOrPatch creates or patches a resource</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">op</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">CreateOrPatch</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">client</span>, <span style="color:#a6e22e">obj</span>, <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Mutate the object</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">Labels</span>[<span style="color:#e6db74">&#34;app&#34;</span>] = <span style="color:#e6db74">&#34;myapp&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h2 id="logging">Logging</h2>
+<h3 id="controller-logger">Controller Logger</h3>
+<p>Each controller has its own logger:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Get controller logger</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">logger</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">GetLogger</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Use in reconciler</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyReconciler</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">FromContext</span>(<span style="color:#a6e22e">ctx</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;Reconciling&#34;</span>, <span style="color:#e6db74">&#34;pod&#34;</span>, <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">NamespacedName</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="custom-log-constructor">Custom Log Constructor</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LogConstructor</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>) <span style="color:#a6e22e">logr</span>.<span style="color:#a6e22e">Logger</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Log</span>.<span style="color:#a6e22e">WithValues</span>(
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;controller&#34;</span>, <span style="color:#e6db74">&#34;my-controller&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;namespace&#34;</span>, <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Namespace</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;name&#34;</span>, <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Name</span>,
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="metrics">Metrics</h2>
+<p>Controllers automatically export Prometheus metrics:</p>
+<ul>
+<li><code>controller_runtime_reconcile_total</code> - Total number of reconciliations</li>
+<li><code>controller_runtime_reconcile_errors_total</code> - Total number of reconciliation errors</li>
+<li><code>controller_runtime_reconcile_time_seconds</code> - Reconciliation duration</li>
+<li><code>workqueue_depth</code> - Current depth of the work queue</li>
+<li><code>workqueue_adds_total</code> - Total number of adds to the work queue</li>
+<li><code>workqueue_retries_total</code> - Total number of retries</li>
+</ul>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="1-start-with-single-worker">1. Start with Single Worker</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">MaxConcurrentReconciles</span>: <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Increase only if:</p>
+<ul>
+<li>Reconciliation is slow</li>
+<li>High throughput is needed</li>
+<li>Reconciler is thread-safe</li>
+</ul>
+<h3 id="2-use-appropriate-cache-sync-timeout">2. Use Appropriate Cache Sync Timeout</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">CacheSyncTimeout</span>: <span style="color:#ae81ff">5</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Consider:</p>
+<ul>
+<li>Cluster size</li>
+<li>Number of resources</li>
+<li>Network latency</li>
+</ul>
+<h3 id="3-handle-errors-properly">3. Handle Errors Properly</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Transient errors - retry with backoff</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">doSomething</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Permanent errors - no retry</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">validate</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">TerminalError</span>(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="4-use-finalizers-for-cleanup">4. Use Finalizers for Cleanup</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">DeletionTimestamp</span>.<span style="color:#a6e22e">IsZero</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Add finalizer if not present</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">ContainsFinalizer</span>(<span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">myFinalizer</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">AddFinalizer</span>(<span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">myFinalizer</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">obj</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Object is being deleted</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">ContainsFinalizer</span>(<span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">myFinalizer</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Perform cleanup</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cleanup</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Remove finalizer</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">RemoveFinalizer</span>(<span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">myFinalizer</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">obj</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="5-enable-panic-recovery">5. Enable Panic Recovery</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">controller</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">RecoverPanic</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#66d9ef">true</span>),
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="6-use-priority-queue-for-critical-resources">6. Use Priority Queue for Critical Resources</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyReconciler</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Prioritize critical resources</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">isCritical</span>(<span style="color:#a6e22e">obj</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{<span style="color:#a6e22e">Priority</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#ae81ff">100</span>)}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="common-patterns">Common Patterns</h2>
+<h3 id="periodic-reconciliation">Periodic Reconciliation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyReconciler</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Reconcile logic</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Requeue after 5 minutes for periodic reconciliation</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{<span style="color:#a6e22e">RequeueAfter</span>: <span style="color:#ae81ff">5</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span>}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="conditional-reconciliation">Conditional Reconciliation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyReconciler</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">MyResource</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">NamespacedName</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">obj</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">IgnoreNotFound</span>(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Only reconcile if condition is met</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">shouldReconcile</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">obj</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Reconcile logic</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="related-packages">Related Packages</h2>
+<ul>
+<li><a href="/docs/01-manager/">Manager Package</a> - Manages controllers</li>
+<li><a href="/docs/03-reconcile/">Reconciler Package</a> - Reconciler interface</li>
+<li><a href="/docs/04-builder/">Builder Package</a> - Builds controllers</li>
+<li><a href="/docs/07-source/">Source Package</a> - Event sources</li>
+<li><a href="/docs/08-handler/">Handler Package</a> - Event handlers</li>
+</ul>
+
+        
+        
+    </div>
+</article>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

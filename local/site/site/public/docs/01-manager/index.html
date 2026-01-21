@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Package | Controller-Runtime Documentation</title>
+    <meta name="description" content="Comprehensive documentation for Kubernetes controller-runtime">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container" id="app">
+        
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="menu-toggle" id="menuToggle" title="Toggle Menu">
+                    <span class="hamburger"></span>
+                </button>
+                <h1 class="site-title">
+                    <a href="/">Controller-Runtime Documentation</a>
+                </h1>
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav" id="sidebarNav">
+                <ul class="menu-list">
+    
+    
+        
+            
+            <li class="menu-item active">
+                <a href="http://localhost:9005/docs/01-manager/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Manager Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/02-controller/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Controller Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/03-reconcile/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Reconcile Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/04-builder/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Builder Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/05-client/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Client Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/06-cache/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Cache Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/07-source/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Source Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/08-handler/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Handler Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/09-predicate/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Predicate Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/10-webhook/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Webhook Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/11-additional-packages/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Additional Packages</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/00-overview/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Controller-Runtime Architecture Overview</span>
+                </a>
+            </li>
+            
+        
+    
+</ul>
+
+            </nav>
+        </aside>
+
+        
+        <div class="resize-handle" id="resizeHandle"></div>
+
+        
+        <main class="main-content">
+            <div class="content-wrapper">
+                
+<article class="doc-content">
+    <header class="doc-header">
+        <h1>Manager Package</h1>
+    </header>
+    
+    <div class="doc-body">
+        <h2 id="overview">Overview</h2>
+<p>The <code>pkg/manager</code> package provides the Manager interface and implementation, which is the central component responsible for orchestrating all controllers, webhooks, and shared dependencies in a controller-runtime application.</p>
+<h2 id="package-location">Package Location</h2>
+<pre tabindex="0"><code>pkg/manager/
+├── manager.go          # Manager interface and implementation
+├── doc.go              # Package documentation
+├── runnable_group.go   # Runnable group management
+├── internal/           # Internal implementation details
+└── signals/            # Signal handling utilities
+</code></pre><h2 id="core-concepts">Core Concepts</h2>
+<h3 id="manager-interface">Manager Interface</h3>
+<p>The Manager is the main entry point for controller-runtime applications. It provides:</p>
+<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+    Manager[Manager]
+    Manager --&gt; Cluster[Cluster Interface]
+    Manager --&gt; Lifecycle[Lifecycle Management]
+    Manager --&gt; HealthChecks[Health Checks]
+    Manager --&gt; Metrics[Metrics Server]
+    Manager --&gt; LeaderElection[Leader Election]
+    Manager --&gt; WebhookServer[Webhook Server]
+    
+    Cluster --&gt; Client[Client]
+    Cluster --&gt; Cache[Cache]
+    Cluster --&gt; Scheme[Scheme]
+    Cluster --&gt; RESTMapper[RESTMapper]
+    
+    style Manager fill:#e1f5ff
+    style Lifecycle fill:#fff4e1
+    style HealthChecks fill:#f0f0f0
+</code></pre><h2 id="manager-interface-definition">Manager Interface Definition</h2>
+<p>The Manager interface extends the <code>cluster.Cluster</code> interface and provides the following methods:</p>
+<h3 id="core-methods">Core Methods</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Manager</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">cluster</span>.<span style="color:#a6e22e">Cluster</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Add registers a Runnable to be started by the manager</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">Runnable</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Elected returns a channel that is closed when the manager is elected leader</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Elected</span>() <span style="color:#f92672">&lt;-</span><span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Start starts all registered Controllers and blocks until the context is cancelled</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetWebhookServer returns the webhook server</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetWebhookServer</span>() <span style="color:#a6e22e">webhook</span>.<span style="color:#a6e22e">Server</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetLogger returns the manager&#39;s logger</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetLogger</span>() <span style="color:#a6e22e">logr</span>.<span style="color:#a6e22e">Logger</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetControllerOptions returns controller global configuration options</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetControllerOptions</span>() <span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">Controller</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// AddMetricsServerExtraHandler adds extra handlers to the metrics server</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">AddMetricsServerExtraHandler</span>(<span style="color:#a6e22e">path</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">handler</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// AddHealthzCheck adds a healthz checker</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">AddHealthzCheck</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">check</span> <span style="color:#a6e22e">healthz</span>.<span style="color:#a6e22e">Checker</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// AddReadyzCheck adds a readyz checker</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">AddReadyzCheck</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">check</span> <span style="color:#a6e22e">healthz</span>.<span style="color:#a6e22e">Checker</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetConverterRegistry returns the conversion webhook registry</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetConverterRegistry</span>() <span style="color:#a6e22e">conversion</span>.<span style="color:#a6e22e">Registry</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="manager-options">Manager Options</h2>
+<p>The Manager is configured using the <code>Options</code> struct:</p>
+<h3 id="key-configuration-options">Key Configuration Options</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Options</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Scheme for mapping objects to GroupVersionKinds</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Scheme</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">Scheme</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// MapperProvider for REST mapping</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">MapperProvider</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">rest</span>.<span style="color:#a6e22e">Config</span>, <span style="color:#a6e22e">httpClient</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Client</span>) (<span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">RESTMapper</span>, <span style="color:#66d9ef">error</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Cache configuration</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Cache</span> <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Client configuration</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Client</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Options</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Logger for the manager</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Logger</span> <span style="color:#a6e22e">logr</span>.<span style="color:#a6e22e">Logger</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Leader Election settings</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElection</span> <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElectionResourceLock</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElectionNamespace</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElectionID</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElectionConfig</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">rest</span>.<span style="color:#a6e22e">Config</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Metrics server configuration</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Metrics</span> <span style="color:#a6e22e">metricsserver</span>.<span style="color:#a6e22e">Options</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Health probe configuration</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">HealthProbeBindAddress</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Webhook server configuration</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WebhookServer</span> <span style="color:#a6e22e">webhook</span>.<span style="color:#a6e22e">Server</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Controller configuration</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Controller</span> <span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">Controller</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Graceful shutdown timeout</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GracefulShutdownTimeout</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="creating-a-manager">Creating a Manager</h2>
+<h3 id="basic-manager-creation">Basic Manager Creation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ctrl</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/manager&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Create a manager with default options</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">GetConfigOrDie</span>(), <span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">Options</span>{})
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Handle error</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Or using the convenience function</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">GetConfigOrDie</span>(), <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{})
+</span></span></code></pre></div><h3 id="manager-with-custom-configuration">Manager with Custom Configuration</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Scheme</span>: <span style="color:#a6e22e">scheme</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Metrics</span>: <span style="color:#a6e22e">metricsserver</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">BindAddress</span>: <span style="color:#e6db74">&#34;:8080&#34;</span>,
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">HealthProbeBindAddress</span>: <span style="color:#e6db74">&#34;:8081&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElection</span>: <span style="color:#66d9ef">true</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElectionID</span>: <span style="color:#e6db74">&#34;my-controller-lock&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElectionNamespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Cache</span>: <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">DefaultNamespaces</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Config</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;my-namespace&#34;</span>: {},
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Logger</span>: <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Log</span>.<span style="color:#a6e22e">WithName</span>(<span style="color:#e6db74">&#34;manager&#34;</span>),
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h2 id="runnable-interface">Runnable Interface</h2>
+<p>The Manager starts and manages Runnables. A Runnable is anything that can be started and stopped:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Runnable</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="runnable-types">Runnable Types</h3>
+<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+    Runnable[Runnable Interface]
+    Runnable --&gt; Controller[Controllers]
+    Runnable --&gt; Webhook[Webhooks]
+    Runnable --&gt; Custom[Custom Runnables]
+    
+    Controller --&gt; LeaderElection1[Leader Election Mode]
+    Webhook --&gt; LeaderElection2[Leader Election Mode]
+    Custom --&gt; LeaderElection3[Leader Election Mode]
+    
+    LeaderElection1 --&gt; Always[Always Running]
+    LeaderElection1 --&gt; OnlyLeader[Only When Leader]
+    
+    style Runnable fill:#e1f5ff
+</code></pre><h3 id="leaderelectionrunnable-interface">LeaderElectionRunnable Interface</h3>
+<p>Runnables can implement this interface to control leader election behavior:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">LeaderElectionRunnable</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">NeedLeaderElection</span>() <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="manager-lifecycle">Manager Lifecycle</h2>
+<h3 id="startup-sequence">Startup Sequence</h3>
+<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">sequenceDiagram
+    participant User
+    participant Manager
+    participant Cache
+    participant Controllers
+    participant Webhooks
+    participant LeaderElection
+    
+    User-&gt;&gt;Manager: Start(ctx)
+    Manager-&gt;&gt;Cache: Start cache
+    Manager-&gt;&gt;Cache: Wait for cache sync
+    
+    alt Leader Election Enabled
+        Manager-&gt;&gt;LeaderElection: Start leader election
+        LeaderElection-&gt;&gt;Manager: Elected as leader
+    end
+    
+    Manager-&gt;&gt;Controllers: Start controllers
+    Manager-&gt;&gt;Webhooks: Start webhooks
+    Manager-&gt;&gt;Manager: Block until context cancelled
+    
+    User-&gt;&gt;Manager: Cancel context
+    Manager-&gt;&gt;Controllers: Stop controllers
+    Manager-&gt;&gt;Webhooks: Stop webhooks
+    Manager-&gt;&gt;Cache: Stop cache
+    Manager-&gt;&gt;User: Return
+</code></pre><h3 id="graceful-shutdown">Graceful Shutdown</h3>
+<p>The Manager handles graceful shutdown automatically:</p>
+<ol>
+<li>Receives shutdown signal (SIGTERM, SIGINT)</li>
+<li>Cancels the context passed to all Runnables</li>
+<li>Waits for all Runnables to complete (up to GracefulShutdownTimeout)</li>
+<li>Exits</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Setup signal handler for graceful shutdown</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">SetupSignalHandler</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Start the manager (blocks until shutdown)</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;problem running manager&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="cluster-interface">Cluster Interface</h2>
+<p>The Manager implements the <code>cluster.Cluster</code> interface, providing access to shared resources:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Cluster</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetScheme returns the scheme</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetScheme</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">Scheme</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetConfig returns the REST config</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetConfig</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">rest</span>.<span style="color:#a6e22e">Config</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetClient returns the client</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetClient</span>() <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Client</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetFieldIndexer returns the field indexer</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetFieldIndexer</span>() <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">FieldIndexer</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetCache returns the cache</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetCache</span>() <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Cache</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetEventRecorderFor returns an event recorder</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetEventRecorderFor</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>) <span style="color:#a6e22e">record</span>.<span style="color:#a6e22e">EventRecorder</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetRESTMapper returns the REST mapper</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetRESTMapper</span>() <span style="color:#a6e22e">meta</span>.<span style="color:#a6e22e">RESTMapper</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// GetAPIReader returns a reader that reads directly from the API server</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GetAPIReader</span>() <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Reader</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Start starts the cluster</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="leader-election">Leader Election</h2>
+<h3 id="configuration">Configuration</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElection</span>: <span style="color:#66d9ef">true</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElectionID</span>: <span style="color:#e6db74">&#34;my-controller-lock&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElectionNamespace</span>: <span style="color:#e6db74">&#34;kube-system&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElectionResourceLock</span>: <span style="color:#e6db74">&#34;leases&#34;</span>, <span style="color:#75715e">// Default</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaseDuration</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#ae81ff">15</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>),
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">RenewDeadline</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#ae81ff">10</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>),
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">RetryPeriod</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>),
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="leader-election-flow">Leader Election Flow</h3>
+<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">stateDiagram-v2
+    [*] --&gt; Candidate
+    Candidate --&gt; Leader: Win Election
+    Candidate --&gt; Follower: Lose Election
+    Leader --&gt; Candidate: Lose Leadership
+    Follower --&gt; Candidate: Leader Lost
+    Leader --&gt; [*]: Shutdown
+    Follower --&gt; [*]: Shutdown
+    
+    state Leader {
+        [*] --&gt; StartControllers
+        StartControllers --&gt; RenewLease
+        RenewLease --&gt; RenewLease: Periodic Renewal
+    }
+    
+    state Follower {
+        [*] --&gt; WaitForLeader
+        WaitForLeader --&gt; WaitForLeader: Monitor Leader
+    }
+</code></pre><h3 id="checking-leader-status">Checking Leader Status</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Wait for leader election</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">Elected</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Now we are the leader</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;Became leader&#34;</span>)
+</span></span></code></pre></div><h2 id="health-and-readiness-checks">Health and Readiness Checks</h2>
+<h3 id="adding-health-checks">Adding Health Checks</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/healthz&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Add a simple ping check</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">AddHealthzCheck</span>(<span style="color:#e6db74">&#34;ping&#34;</span>, <span style="color:#a6e22e">healthz</span>.<span style="color:#a6e22e">Ping</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Add a custom check</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">AddHealthzCheck</span>(<span style="color:#e6db74">&#34;custom&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Custom health check logic</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">isHealthy</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;not healthy&#34;</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Add readiness checks</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">AddReadyzCheck</span>(<span style="color:#e6db74">&#34;cache&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>().<span style="color:#a6e22e">WaitForCacheSync</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Context</span>()) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;cache not synced&#34;</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="health-check-endpoints">Health Check Endpoints</h3>
+<p>When <code>HealthProbeBindAddress</code> is set, the manager exposes:</p>
+<ul>
+<li><code>/healthz</code> - Liveness probe endpoint</li>
+<li><code>/readyz</code> - Readiness probe endpoint</li>
+</ul>
+<h2 id="metrics-server">Metrics Server</h2>
+<h3 id="configuration-1">Configuration</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#a6e22e">metricsserver</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/metrics/server&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Metrics</span>: <span style="color:#a6e22e">metricsserver</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">BindAddress</span>: <span style="color:#e6db74">&#34;:8080&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">SecureServing</span>: <span style="color:#66d9ef">true</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">CertDir</span>: <span style="color:#e6db74">&#34;/tmp/k8s-metrics-server/serving-certs&#34;</span>,
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="adding-custom-metrics-handlers">Adding Custom Metrics Handlers</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Add pprof handlers</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">AddMetricsServerExtraHandler</span>(<span style="color:#e6db74">&#34;/debug/pprof/&#34;</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">DefaultServeMux</span>)
+</span></span></code></pre></div><h2 id="webhook-server">Webhook Server</h2>
+<h3 id="accessing-the-webhook-server">Accessing the Webhook Server</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Get the webhook server</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">webhookServer</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetWebhookServer</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Register a webhook</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">webhookServer</span>.<span style="color:#a6e22e">Register</span>(<span style="color:#e6db74">&#34;/mutate-v1-pod&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">webhook</span>.<span style="color:#a6e22e">Admission</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Handler</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">podMutator</span>{},
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h2 id="event-recorders">Event Recorders</h2>
+<p>The Manager provides event recorders for publishing Kubernetes events:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Get an event recorder</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">recorder</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetEventRecorderFor</span>(<span style="color:#e6db74">&#34;my-controller&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Record an event</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">recorder</span>.<span style="color:#a6e22e">Event</span>(<span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">EventTypeNormal</span>, <span style="color:#e6db74">&#34;Created&#34;</span>, <span style="color:#e6db74">&#34;Created pod successfully&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Record an event with annotations</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">recorder</span>.<span style="color:#a6e22e">AnnotatedEventf</span>(<span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">annotations</span>, <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">EventTypeWarning</span>, <span style="color:#e6db74">&#34;Failed&#34;</span>, <span style="color:#e6db74">&#34;Failed to create pod: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span></code></pre></div><h2 id="custom-runnables">Custom Runnables</h2>
+<h3 id="adding-custom-runnables">Adding Custom Runnables</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MyRunnable</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// fields</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyRunnable</span>) <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Start logic</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Done</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Cleanup logic</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyRunnable</span>) <span style="color:#a6e22e">NeedLeaderElection</span>() <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span> <span style="color:#75715e">// Run only when elected leader</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Add to manager</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyRunnable</span>{})
+</span></span></code></pre></div><h3 id="runnable-groups">Runnable Groups</h3>
+<p>Runnables are organized into groups:</p>
+<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+    Manager[Manager]
+    Manager --&gt; LeaderGroup[Leader Election Group]
+    Manager --&gt; NonLeaderGroup[Non-Leader Group]
+    Manager --&gt; WebhookGroup[Webhook Group]
+    
+    LeaderGroup --&gt; Controller1[Controller 1]
+    LeaderGroup --&gt; Controller2[Controller 2]
+    
+    NonLeaderGroup --&gt; Cache[Cache]
+    NonLeaderGroup --&gt; Metrics[Metrics Server]
+    
+    WebhookGroup --&gt; Webhook1[Webhook 1]
+    WebhookGroup --&gt; Webhook2[Webhook 2]
+    
+    style Manager fill:#e1f5ff
+    style LeaderGroup fill:#fff4e1
+    style NonLeaderGroup fill:#f0f0f0
+    style WebhookGroup fill:#e8f5e9
+</code></pre><h2 id="best-practices">Best Practices</h2>
+<h3 id="1-single-manager-per-process">1. Single Manager Per Process</h3>
+<p>Create one Manager per process and register all controllers with it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Register multiple controllers</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).<span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Pod</span>{}).<span style="color:#a6e22e">Complete</span>(<span style="color:#a6e22e">reconciler1</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).<span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">Service</span>{}).<span style="color:#a6e22e">Complete</span>(<span style="color:#a6e22e">reconciler2</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>)
+</span></span></code></pre></div><h3 id="2-use-leader-election-for-ha">2. Use Leader Election for HA</h3>
+<p>Enable leader election for high availability:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElection</span>: <span style="color:#66d9ef">true</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElectionID</span>: <span style="color:#e6db74">&#34;unique-lock-name&#34;</span>,
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="3-configure-health-checks">3. Configure Health Checks</h3>
+<p>Always configure health and readiness checks:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">AddHealthzCheck</span>(<span style="color:#e6db74">&#34;ping&#34;</span>, <span style="color:#a6e22e">healthz</span>.<span style="color:#a6e22e">Ping</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">AddReadyzCheck</span>(<span style="color:#e6db74">&#34;cache&#34;</span>, <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>().<span style="color:#a6e22e">WaitForCacheSync</span>)
+</span></span></code></pre></div><h3 id="4-handle-signals-properly">4. Handle Signals Properly</h3>
+<p>Use the provided signal handler:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">SetupSignalHandler</span>()
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>)
+</span></span></code></pre></div><h3 id="5-configure-graceful-shutdown">5. Configure Graceful Shutdown</h3>
+<p>Set an appropriate graceful shutdown timeout:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GracefulShutdownTimeout</span>: <span style="color:#a6e22e">ptr</span>.<span style="color:#a6e22e">To</span>(<span style="color:#ae81ff">30</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>),
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h2 id="common-patterns">Common Patterns</h2>
+<h3 id="multi-cluster-manager">Multi-Cluster Manager</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Create managers for multiple clusters</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">primaryMgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">primaryConfig</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{})
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">secondaryMgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">secondaryConfig</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Start both managers</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#a6e22e">primaryMgr</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#a6e22e">secondaryMgr</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>)
+</span></span></code></pre></div><h3 id="namespace-scoped-manager">Namespace-Scoped Manager</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Cache</span>: <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">DefaultNamespaces</span>: <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Config</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;my-namespace&#34;</span>: {},
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h2 id="related-packages">Related Packages</h2>
+<ul>
+<li><a href="./02-controller.md">Controller Package</a> - Controllers managed by the Manager</li>
+<li><a href="./06-cache.md">Cache Package</a> - Cache provided by the Manager</li>
+<li><a href="./05-client.md">Client Package</a> - Client provided by the Manager</li>
+<li><a href="./10-webhook.md">Webhook Package</a> - Webhooks managed by the Manager</li>
+</ul>
+
+        
+        
+    </div>
+</article>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

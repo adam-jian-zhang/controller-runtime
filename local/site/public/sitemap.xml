@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>http://localhost:9005/docs/00-overview/</loc>
+  </url><url>
+    <loc>http://localhost:9005/docs/01-manager/</loc>
+  </url><url>
+    <loc>http://localhost:9005/docs/02-controller/</loc>
+  </url><url>
+    <loc>http://localhost:9005/docs/03-reconcile/</loc>
+  </url><url>
+    <loc>http://localhost:9005/docs/04-builder/</loc>
+  </url><url>
+    <loc>http://localhost:9005/docs/05-client/</loc>
+  </url><url>
+    <loc>http://localhost:9005/docs/06-cache/</loc>
+  </url><url>
+    <loc>http://localhost:9005/docs/07-source/</loc>
+  </url><url>
+    <loc>http://localhost:9005/docs/08-handler/</loc>
+  </url><url>
+    <loc>http://localhost:9005/docs/09-predicate/</loc>
+  </url><url>
+    <loc>http://localhost:9005/docs/10-webhook/</loc>
+  </url><url>
+    <loc>http://localhost:9005/docs/11-additional-packages/</loc>
+  </url><url>
+    <loc>http://localhost:9005/</loc>
+  </url><url>
+    <loc>http://localhost:9005/categories/</loc>
+  </url><url>
+    <loc>http://localhost:9005/docs/</loc>
+  </url><url>
+    <loc>http://localhost:9005/tags/</loc>
+  </url>
+</urlset>

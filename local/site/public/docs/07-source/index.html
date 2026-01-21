@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Source | Controller-Runtime Documentation</title>
+    <meta name="description" content="Comprehensive documentation for Kubernetes controller-runtime">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container" id="app">
+        
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="menu-toggle" id="menuToggle" title="Toggle Menu">
+                    <span class="hamburger"></span>
+                </button>
+                <h1 class="site-title">
+                    <a href="/">Controller-Runtime Documentation</a>
+                </h1>
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav" id="sidebarNav">
+                <ul class="menu-list">
+    
+    
+        
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/00-overview/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Architecture</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/01-manager/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Manager</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/02-controller/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Controller</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/03-reconcile/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Reconcile</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/04-builder/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Builder</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/05-client/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Client</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/06-cache/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Cache</span>
+                </a>
+            </li>
+            
+            <li class="menu-item active">
+                <a href="http://localhost:9005/docs/07-source/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Source</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/08-handler/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Handler</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/09-predicate/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Predicate</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/10-webhook/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Webhook</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/11-additional-packages/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Additional Packages</span>
+                </a>
+            </li>
+            
+        
+    
+</ul>
+
+            </nav>
+        </aside>
+
+        
+        <div class="resize-handle" id="resizeHandle"></div>
+
+        
+        <main class="main-content">
+            <div class="content-wrapper">
+                
+<article class="doc-content">
+    <header class="doc-header">
+        <h1>Source</h1>
+    </header>
+    
+    <div class="doc-body">
+        <h2 id="overview">Overview</h2>
+<p>The <code>pkg/source</code> package provides event sources that feed events into controllers. Sources watch for changes and generate events that are processed by handlers to enqueue reconcile requests.</p>
+<h2 id="package-location">Package Location</h2>
+<pre tabindex="0"><code>pkg/source/
+├── source.go           # Source interfaces and implementations
+├── doc.go              # Package documentation
+└── example_test.go     # Usage examples
+</code></pre><h2 id="core-concepts">Core Concepts</h2>
+<h3 id="source-flow">Source Flow</h3>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-a126cd848c56.svg" alt="Diagram" />
+</div>
+<h2 id="source-interface">Source Interface</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Source</span> = <span style="color:#a6e22e">TypedSource</span>[<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">TypedSource</span>[<span style="color:#a6e22e">request</span> <span style="color:#a6e22e">comparable</span>] <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Start is called by the Controller to start the source</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Must be non-blocking</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">TypedRateLimitingInterface</span>[<span style="color:#a6e22e">request</span>]) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="syncingsource">SyncingSource</h3>
+<p>Sources that need synchronization implement this interface:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">SyncingSource</span> = <span style="color:#a6e22e">TypedSyncingSource</span>[<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">TypedSyncingSource</span>[<span style="color:#a6e22e">request</span> <span style="color:#a6e22e">comparable</span>] <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">TypedSource</span>[<span style="color:#a6e22e">request</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// WaitForSync waits for the source to sync</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WaitForSync</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="built-in-sources">Built-in Sources</h2>
+<h3 id="kind-source">Kind Source</h3>
+<p>The most common source - watches Kubernetes resources:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/source&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/handler&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Watch Pods</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>(),
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{},
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// With predicates</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>(),
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h3 id="channel-source">Channel Source</h3>
+<p>For events from external sources:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Create a channel</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">events</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Create source</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">src</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Channel</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">events</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{},
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Send events</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">events</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Object</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ObjectMeta</span>: <span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">ObjectMeta</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;my-pod&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="using-sources-with-builder">Using Sources with Builder</h2>
+<h3 id="for-method-primary-resource">For Method (Primary Resource)</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Automatically creates a Kind source</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{})
+</span></span></code></pre></div><p>Equivalent to:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WatchesRawSource</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>(<span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>(), <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{}),
+</span></span><span style="display:flex;"><span>    )
+</span></span></code></pre></div><h3 id="owns-method-owned-resources">Owns Method (Owned Resources)</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Automatically creates a Kind source with owner handler</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Owns</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{})
+</span></span></code></pre></div><p>Equivalent to:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WatchesRawSource</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>(<span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>(), <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForOwner</span>(
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetScheme</span>(),
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetRESTMapper</span>(),
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{},
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">OnlyControllerOwner</span>(),
+</span></span><span style="display:flex;"><span>            )),
+</span></span><span style="display:flex;"><span>    )
+</span></span></code></pre></div><h3 id="watches-method-custom-sources">Watches Method (Custom Sources)</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Watch ConfigMaps with custom mapping</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Watches</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">ConfigMap</span>{},
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestsFromMapFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// Map ConfigMap to Deployments</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>{
+</span></span><span style="display:flex;"><span>                {<span style="color:#a6e22e">NamespacedName</span>: <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>{
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">Name</span>:      <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetName</span>() <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;-deployment&#34;</span>,
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">Namespace</span>: <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetNamespace</span>(),
+</span></span><span style="display:flex;"><span>                }},
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }),
+</span></span><span style="display:flex;"><span>    )
+</span></span></code></pre></div><h3 id="watchesrawsource-method">WatchesRawSource Method</h3>
+<p>For complete control:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WatchesRawSource</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>(<span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>(), <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{},
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{}),
+</span></span><span style="display:flex;"><span>    )
+</span></span></code></pre></div><h2 id="kind-source-details">Kind Source Details</h2>
+<h3 id="basic-kind-source">Basic Kind Source</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">src</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">cache</span>,              <span style="color:#75715e">// Cache to watch</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},      <span style="color:#75715e">// Object type</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">handler</span>,            <span style="color:#75715e">// Event handler</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">predicates</span><span style="color:#f92672">...</span>,      <span style="color:#75715e">// Optional predicates</span>
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h3 id="kind-source-with-predicates">Kind Source with Predicates</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">src</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>(),
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">CreateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">CreateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">GetNamespace</span>() <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;production&#34;</span>
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">UpdateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectNew</span>.<span style="color:#a6e22e">GetGeneration</span>() <span style="color:#f92672">!=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectOld</span>.<span style="color:#a6e22e">GetGeneration</span>()
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h3 id="typed-kind-source">Typed Kind Source</h3>
+<p>For custom request types:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">CustomRequest</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">NamespacedName</span> <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Priority</span>       <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">src</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">TypedKind</span>[<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>, <span style="color:#a6e22e">CustomRequest</span>](
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetCache</span>(),
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">customHandler</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">predicates</span><span style="color:#f92672">...</span>,
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h2 id="channel-source-details">Channel Source Details</h2>
+<h3 id="basic-channel-source">Basic Channel Source</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Create channel</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">events</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>, <span style="color:#ae81ff">10</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Create source</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">src</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Channel</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">events</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{},
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Add to controller</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Watch</span>(<span style="color:#a6e22e">src</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Send events</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ticker</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">NewTicker</span>(<span style="color:#ae81ff">5</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">ticker</span>.<span style="color:#a6e22e">Stop</span>()
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">select</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ticker</span>.<span style="color:#a6e22e">C</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">events</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>{
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Object</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">ObjectMeta</span>: <span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">ObjectMeta</span>{
+</span></span><span style="display:flex;"><span>                        <span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;periodic-check&#34;</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>                    },
+</span></span><span style="display:flex;"><span>                },
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Done</span>():
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}()
+</span></span></code></pre></div><h3 id="channel-source-with-predicates">Channel Source with Predicates</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">src</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Channel</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">events</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">GenericFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// Filter events</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">GetLabels</span>()[<span style="color:#e6db74">&#34;trigger&#34;</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;true&#34;</span>
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h2 id="common-source-patterns">Common Source Patterns</h2>
+<h3 id="1-watch-primary-resource">1. Watch Primary Resource</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Watch the resource being reconciled</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{})
+</span></span></code></pre></div><h3 id="2-watch-owned-resources">2. Watch Owned Resources</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Watch resources created by the controller</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Owns</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Owns</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Service</span>{})
+</span></span></code></pre></div><h3 id="3-watch-related-resources">3. Watch Related Resources</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Watch resources that affect reconciliation</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Watches</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">ConfigMap</span>{},
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestsFromMapFunc</span>(<span style="color:#a6e22e">mapConfigMapToMyResource</span>),
+</span></span><span style="display:flex;"><span>    )
+</span></span></code></pre></div><h3 id="4-periodic-reconciliation">4. Periodic Reconciliation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Trigger reconciliation periodically</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">events</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ticker</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">NewTicker</span>(<span style="color:#ae81ff">5</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">ticker</span>.<span style="color:#a6e22e">Stop</span>()
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">select</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ticker</span>.<span style="color:#a6e22e">C</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// List all resources and trigger reconciliation</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">list</span> <span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResourceList</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetClient</span>().<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">list</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">item</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">list</span>.<span style="color:#a6e22e">Items</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">events</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>{<span style="color:#a6e22e">Object</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">item</span>}
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Done</span>():
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WatchesRawSource</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Channel</span>(<span style="color:#a6e22e">events</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{}),
+</span></span><span style="display:flex;"><span>    )
+</span></span></code></pre></div><h3 id="5-external-event-source">5. External Event Source</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Watch external events (e.g., GitHub webhooks)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">events</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>, <span style="color:#ae81ff">100</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// HTTP handler for webhooks</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/webhook&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Parse webhook payload</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Create event</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">events</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Object</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">ObjectMeta</span>: <span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">ObjectMeta</span>{
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;resource-name&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WatchesRawSource</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Channel</span>(<span style="color:#a6e22e">events</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{}),
+</span></span><span style="display:flex;"><span>    )
+</span></span></code></pre></div><h3 id="6-cross-namespace-watching">6. Cross-Namespace Watching</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Watch resources in multiple namespaces</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Watches</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Secret</span>{},
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestsFromMapFunc</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// Map Secret to MyResources across namespaces</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">resources</span> <span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResourceList</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetClient</span>().<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">resources</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">requests</span> []<span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">res</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">resources</span>.<span style="color:#a6e22e">Items</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">SecretRef</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetName</span>() {
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">requests</span> = append(<span style="color:#a6e22e">requests</span>, <span style="color:#a6e22e">reconcile</span>.<span style="color:#a6e22e">Request</span>{
+</span></span><span style="display:flex;"><span>                        <span style="color:#a6e22e">NamespacedName</span>: <span style="color:#a6e22e">types</span>.<span style="color:#a6e22e">NamespacedName</span>{
+</span></span><span style="display:flex;"><span>                            <span style="color:#a6e22e">Name</span>:      <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Name</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#a6e22e">Namespace</span>: <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Namespace</span>,
+</span></span><span style="display:flex;"><span>                        },
+</span></span><span style="display:flex;"><span>                    })
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">requests</span>
+</span></span><span style="display:flex;"><span>        }),
+</span></span><span style="display:flex;"><span>    )
+</span></span></code></pre></div><h2 id="source-lifecycle">Source Lifecycle</h2>
+<h3 id="source-startup">Source Startup</h3>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-38dece69a00a.svg" alt="Diagram" />
+</div>
+<h3 id="source-shutdown">Source Shutdown</h3>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-d55ad67500e0.svg" alt="Diagram" />
+</div>
+<h2 id="custom-sources">Custom Sources</h2>
+<h3 id="implementing-a-custom-source">Implementing a Custom Source</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MySource</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">handler</span> <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EventHandler</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">s</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MySource</span>) <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">queue</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">RateLimitingInterface</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Start watching for events</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ticker</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">NewTicker</span>(<span style="color:#ae81ff">1</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">ticker</span>.<span style="color:#a6e22e">Stop</span>()
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">select</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ticker</span>.<span style="color:#a6e22e">C</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// Generate event</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">evt</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>{
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">Object</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{
+</span></span><span style="display:flex;"><span>                        <span style="color:#a6e22e">ObjectMeta</span>: <span style="color:#a6e22e">metav1</span>.<span style="color:#a6e22e">ObjectMeta</span>{
+</span></span><span style="display:flex;"><span>                            <span style="color:#a6e22e">Name</span>:      <span style="color:#e6db74">&#34;my-pod&#34;</span>,
+</span></span><span style="display:flex;"><span>                            <span style="color:#a6e22e">Namespace</span>: <span style="color:#e6db74">&#34;default&#34;</span>,
+</span></span><span style="display:flex;"><span>                        },
+</span></span><span style="display:flex;"><span>                    },
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// Process with handler</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">Generic</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">evt</span>, <span style="color:#a6e22e">queue</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Done</span>():
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }()
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Use custom source</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">src</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MySource</span>{<span style="color:#a6e22e">handler</span>: <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestForObject</span>{}}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Watch</span>(<span style="color:#a6e22e">src</span>)
+</span></span></code></pre></div><h3 id="custom-syncingsource">Custom SyncingSource</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MySyncingSource</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">MySource</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">synced</span> <span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">s</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MySyncingSource</span>) <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">queue</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">RateLimitingInterface</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Start source</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">MySource</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">queue</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Mark as synced after initial sync</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Wait for initial sync</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">1</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
+</span></span><span style="display:flex;"><span>        close(<span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">synced</span>)
+</span></span><span style="display:flex;"><span>    }()
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">s</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MySyncingSource</span>) <span style="color:#a6e22e">WaitForSync</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">select</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">synced</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Done</span>():
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Err</span>()
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="best-practices">Best Practices</h2>
+<h3 id="1-use-kind-source-for-kubernetes-resources">1. Use Kind Source for Kubernetes Resources</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Preferred</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Instead of custom source</span>
+</span></span></code></pre></div><h3 id="2-use-channel-source-for-external-events">2. Use Channel Source for External Events</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// For webhooks, timers, external systems</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">events</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Channel</span>(<span style="color:#a6e22e">events</span>, <span style="color:#a6e22e">handler</span>)
+</span></span></code></pre></div><h3 id="3-add-predicates-to-filter-events">3. Add Predicates to Filter Events</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">source</span>.<span style="color:#a6e22e">Kind</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">cache</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">handler</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h3 id="4-buffer-channel-sources">4. Buffer Channel Sources</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Buffer to avoid blocking</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">events</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>, <span style="color:#ae81ff">100</span>)
+</span></span></code></pre></div><h3 id="5-handle-context-cancellation">5. Handle Context Cancellation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">select</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ticker</span>.<span style="color:#a6e22e">C</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">events</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">evt</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Done</span>():
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}()
+</span></span></code></pre></div><h2 id="common-pitfalls">Common Pitfalls</h2>
+<h3 id="1-blocking-in-start-method">1. Blocking in Start Method</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// BAD - Start must not block</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">s</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MySource</span>) <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">queue</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">RateLimitingInterface</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// This blocks!</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">events</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">evt</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// GOOD - Start in goroutine</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">s</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MySource</span>) <span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">queue</span> <span style="color:#a6e22e">workqueue</span>.<span style="color:#a6e22e">RateLimitingInterface</span>) <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">select</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ticker</span>.<span style="color:#a6e22e">C</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">events</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">evt</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Done</span>():
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="2-not-handling-context-cancellation">2. Not Handling Context Cancellation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// BAD - goroutine leak</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">events</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">evt</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// GOOD - respect context</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">select</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Done</span>():
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">default</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">events</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">evt</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}()
+</span></span></code></pre></div><h3 id="3-unbuffered-channels">3. Unbuffered Channels</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// BAD - can block</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">events</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// GOOD - buffered</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">events</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>, <span style="color:#ae81ff">100</span>)
+</span></span></code></pre></div><h2 id="related-packages">Related Packages</h2>
+<ul>
+<li><a href="/docs/08-handler/">Handler Package</a> - Processes events from sources</li>
+<li><a href="/docs/09-predicate/">Predicate Package</a> - Filters events from sources</li>
+<li><a href="/docs/02-controller/">Controller Package</a> - Uses sources</li>
+<li><a href="/docs/04-builder/">Builder Package</a> - Configures sources</li>
+</ul>
+
+        
+        
+    </div>
+</article>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

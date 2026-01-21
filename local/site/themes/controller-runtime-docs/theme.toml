@@ -1,0 +1,8 @@
+name = "Controller-Runtime Docs"
+license = "Apache-2.0"
+description = "Documentation theme for controller-runtime"
+homepage = "https://github.com/kubernetes-sigs/controller-runtime"
+min_version = "0.120.0"
+
+[author]
+  name = "Controller-Runtime Contributors"

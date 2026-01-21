@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta name="generator" content="Hugo 0.154.5">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controller-Runtime Documentation | Controller-Runtime Documentation</title>
+    <meta name="description" content="Comprehensive documentation for Kubernetes controller-runtime">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container" id="app">
+        
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="menu-toggle" id="menuToggle" title="Toggle Menu">
+                    <span class="hamburger"></span>
+                </button>
+                <h1 class="site-title">
+                    <a href="/">Controller-Runtime Documentation</a>
+                </h1>
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav" id="sidebarNav">
+                <ul class="menu-list">
+    
+    
+        
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/00-overview/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Architecture</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/01-manager/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Manager</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/02-controller/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Controller</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/03-reconcile/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Reconcile</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/04-builder/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Builder</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/05-client/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Client</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/06-cache/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Cache</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/07-source/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Source</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/08-handler/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Handler</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/09-predicate/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Predicate</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/10-webhook/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Webhook</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/11-additional-packages/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Additional Packages</span>
+                </a>
+            </li>
+            
+        
+    
+</ul>
+
+            </nav>
+        </aside>
+
+        
+        <div class="resize-handle" id="resizeHandle"></div>
+
+        
+        <main class="main-content">
+            <div class="content-wrapper">
+                
+<article class="doc-content">
+    <header class="doc-header">
+        <h1>Controller-Runtime Documentation</h1>
+    </header>
+    
+    <div class="doc-body">
+        <p>This directory contains comprehensive documentation for the Kubernetes controller-runtime project.</p>
+<h2 id="documentation-structure">Documentation Structure</h2>
+<h3 id="core-documentation">Core Documentation</h3>
+<ol>
+<li><strong><a href="/docs/00-overview/">Architecture Overview</a></strong> - High-level architecture and design principles</li>
+<li><strong><a href="/docs/01-manager/">Manager Package</a></strong> - Central orchestrator for controllers and webhooks</li>
+<li><strong><a href="/docs/02-controller/">Controller Package</a></strong> - Controller implementation and work queue management</li>
+<li><strong><a href="/docs/03-reconcile/">Reconcile Package</a></strong> - Reconciler interface and reconciliation patterns</li>
+<li><strong><a href="/docs/04-builder/">Builder Package</a></strong> - Fluent API for building controllers</li>
+<li><strong><a href="/docs/05-client/">Client Package</a></strong> - Kubernetes API client interface</li>
+<li><strong><a href="/docs/06-cache/">Cache Package</a></strong> - Object caching with informers</li>
+<li><strong><a href="/docs/07-source/">Source Package</a></strong> - Event sources for controllers</li>
+<li><strong><a href="/docs/08-handler/">Handler Package</a></strong> - Event handlers for processing events</li>
+<li><strong><a href="/docs/09-predicate/">Predicate Package</a></strong> - Event filtering predicates</li>
+<li><strong><a href="/docs/10-webhook/">Webhook Package</a></strong> - Admission and conversion webhooks</li>
+<li><strong><a href="/docs/11-additional-packages/">Additional Packages</a></strong> - Supporting packages</li>
+</ol>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="basic-controller-example">Basic Controller Example</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;context&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;os&#34;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">corev1</span> <span style="color:#e6db74">&#34;k8s.io/api/core/v1&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ctrl</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/log&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/log/zap&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">PodReconciler</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Client</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">PodReconciler</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">FromContext</span>(<span style="color:#a6e22e">ctx</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">pod</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">NamespacedName</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">IgnoreNotFound</span>(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;Reconciling Pod&#34;</span>, <span style="color:#e6db74">&#34;name&#34;</span>, <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Name</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">SetLogger</span>(<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">New</span>())
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">GetConfigOrDie</span>(), <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{})
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}).
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Complete</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">PodReconciler</span>{
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Client</span>: <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetClient</span>(),
+</span></span><span style="display:flex;"><span>        })
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">SetupSignalHandler</span>()); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Exit</span>(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="key-concepts">Key Concepts</h2>
+<h3 id="level-based-reconciliation">Level-Based Reconciliation</h3>
+<p>Controller-runtime uses level-based reconciliation, meaning controllers reconcile based on the current state of the system, not individual events. This makes controllers:</p>
+<ul>
+<li><strong>Resilient</strong>: Missed events don&rsquo;t cause problems</li>
+<li><strong>Self-healing</strong>: Controllers continuously converge to desired state</li>
+<li><strong>Idempotent</strong>: Multiple reconciliations produce the same result</li>
+</ul>
+<h3 id="separation-of-concerns">Separation of Concerns</h3>
+<p>The framework separates different aspects of controller logic:</p>
+<ul>
+<li><strong>Source</strong>: Where events come from (e.g., Kubernetes API)</li>
+<li><strong>Handler</strong>: How to transform events into reconcile requests</li>
+<li><strong>Predicate</strong>: Which events to process</li>
+<li><strong>Reconciler</strong>: What to do with the reconcile request</li>
+</ul>
+<h3 id="shared-dependencies">Shared Dependencies</h3>
+<p>The Manager provides shared dependencies to all controllers:</p>
+<ul>
+<li><strong>Cache</strong>: Shared in-memory cache of Kubernetes objects</li>
+<li><strong>Client</strong>: Unified client for API operations</li>
+<li><strong>Scheme</strong>: Type registration for serialization</li>
+<li><strong>REST Mapper</strong>: Mapping between Go types and API resources</li>
+</ul>
+<h2 id="architecture-diagram">Architecture Diagram</h2>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-91f2d7d4da4c.svg" alt="Diagram" />
+</div>
+<h2 id="common-use-cases">Common Use Cases</h2>
+<h3 id="1-custom-resource-controller">1. Custom Resource Controller</h3>
+<p>Build a controller for your Custom Resource Definition (CRD):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Owns</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Owns</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Service</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Complete</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyResourceReconciler</span>{})
+</span></span></code></pre></div><h3 id="2-built-in-resource-controller">2. Built-in Resource Controller</h3>
+<p>Watch and react to built-in Kubernetes resources:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Complete</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">PodReconciler</span>{})
+</span></span></code></pre></div><h3 id="3-multi-resource-controller">3. Multi-Resource Controller</h3>
+<p>Watch multiple related resources:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Watches</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">ConfigMap</span>{}, 
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestsFromMapFunc</span>(<span style="color:#a6e22e">mapFunc</span>)).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Watches</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Secret</span>{},
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestsFromMapFunc</span>(<span style="color:#a6e22e">mapFunc</span>)).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Complete</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyResourceReconciler</span>{})
+</span></span></code></pre></div><h3 id="4-admission-webhook">4. Admission Webhook</h3>
+<p>Implement validating and mutating webhooks:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewWebhookManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WithDefaulter</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyResourceDefaulter</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WithValidator</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyResourceValidator</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Complete</span>()
+</span></span></code></pre></div><h2 id="best-practices">Best Practices</h2>
+<h3 id="1-idempotent-reconciliation">1. Idempotent Reconciliation</h3>
+<p>Ensure your reconcile logic can be called multiple times safely:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyReconciler</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Check if work is already done</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">isAlreadyDone</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Do work</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="2-handle-deletion-with-finalizers">2. Handle Deletion with Finalizers</h3>
+<p>Use finalizers for cleanup when objects are deleted:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">DeletionTimestamp</span>.<span style="color:#a6e22e">IsZero</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">ContainsFinalizer</span>(<span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">myFinalizer</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Perform cleanup</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cleanup</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Remove finalizer</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">RemoveFinalizer</span>(<span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">myFinalizer</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">obj</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Add finalizer if not present</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">ContainsFinalizer</span>(<span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">myFinalizer</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">controllerutil</span>.<span style="color:#a6e22e">AddFinalizer</span>(<span style="color:#a6e22e">obj</span>, <span style="color:#a6e22e">myFinalizer</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">obj</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="3-update-status-separately">3. Update Status Separately</h3>
+<p>Always update status using the status subresource:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Update spec</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">obj</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Update status</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Status</span>().<span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">obj</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="4-use-predicates-to-filter-events">4. Use Predicates to Filter Events</h3>
+<p>Reduce unnecessary reconciliations:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}, <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">WithPredicates</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>    )).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Complete</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyResourceReconciler</span>{})
+</span></span></code></pre></div><h3 id="5-enable-leader-election-for-ha">5. Enable Leader Election for HA</h3>
+<p>Run multiple replicas with leader election:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElection</span>: <span style="color:#66d9ef">true</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">LeaderElectionID</span>: <span style="color:#e6db74">&#34;my-controller-lock&#34;</span>,
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h2 id="testing">Testing</h2>
+<h3 id="unit-testing-with-fake-client">Unit Testing with Fake Client</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/client/fake&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestReconcile</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">scheme</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">NewScheme</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">AddToScheme</span>(<span style="color:#a6e22e">scheme</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fakeClient</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fake</span>.<span style="color:#a6e22e">NewClientBuilder</span>().
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">WithScheme</span>(<span style="color:#a6e22e">scheme</span>).
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">WithObjects</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">pod</span>).
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Build</span>()
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">reconciler</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyReconciler</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Client</span>: <span style="color:#a6e22e">fakeClient</span>,
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">reconciler</span>.<span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">req</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Assert result and err</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="integration-testing-with-envtest">Integration Testing with envtest</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/envtest&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestControllerIntegration</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">testEnv</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">envtest</span>.<span style="color:#a6e22e">Environment</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">CRDDirectoryPaths</span>: []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;./config/crd&#34;</span>},
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">cfg</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">testEnv</span>.<span style="color:#a6e22e">Start</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">testEnv</span>.<span style="color:#a6e22e">Stop</span>()
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Create manager and controller</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Run tests</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="common-issues">Common Issues</h3>
+<ol>
+<li><strong>Cache not synced</strong>: Increase <code>CacheSyncTimeout</code></li>
+<li><strong>High memory usage</strong>: Use <code>OnlyMetadata</code> watches</li>
+<li><strong>Slow reconciliation</strong>: Increase <code>MaxConcurrentReconciles</code></li>
+<li><strong>Missed events</strong>: Check predicates aren&rsquo;t too restrictive</li>
+<li><strong>Conflicts on update</strong>: Use <code>Patch</code> instead of <code>Update</code></li>
+</ol>
+<h3 id="debugging">Debugging</h3>
+<p>Enable verbose logging:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/log/zap&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">SetLogger</span>(<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">UseDevMode</span>(<span style="color:#66d9ef">true</span>)))
+</span></span></code></pre></div><h2 id="resources">Resources</h2>
+<h3 id="official-documentation">Official Documentation</h3>
+<ul>
+<li><a href="https://book.kubebuilder.io/">Kubebuilder Book</a></li>
+<li><a href="https://pkg.go.dev/sigs.k8s.io/controller-runtime">Controller-Runtime GoDoc</a></li>
+<li><a href="https://github.com/kubernetes-sigs/controller-runtime">GitHub Repository</a></li>
+</ul>
+<h3 id="examples">Examples</h3>
+<ul>
+<li><a href="../examples/builtins/">Built-in Resources Example</a></li>
+<li><a href="../examples/crd/">CRD Example</a></li>
+<li><a href="../examples/typed/">Typed Controller Example</a></li>
+</ul>
+<h3 id="community">Community</h3>
+<ul>
+<li><a href="https://kubernetes.slack.com/archives/C02MRBMN00Z">Kubernetes Slack #controller-runtime</a></li>
+<li><a href="https://groups.google.com/forum/#!forum/kubebuilder">Kubebuilder Google Group</a></li>
+</ul>
+<h2 id="contributing">Contributing</h2>
+<p>See <a href="../../CONTRIBUTING.md">CONTRIBUTING.md</a> for guidelines on contributing to controller-runtime.</p>
+<h2 id="license">License</h2>
+<p>Controller-runtime is licensed under the Apache License 2.0. See <a href="../../LICENSE">LICENSE</a> for details.</p>
+
+        
+        
+        <section class="page-list">
+            <h2>Contents</h2>
+            <ul>
+            
+                <li>
+                    <a href="http://localhost:9005/docs/">Docs</a>
+                    
+                </li>
+            
+            </ul>
+        </section>
+        
+    </div>
+</article>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

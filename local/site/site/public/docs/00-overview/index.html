@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controller-Runtime Architecture Overview | Controller-Runtime Documentation</title>
+    <meta name="description" content="Comprehensive documentation for Kubernetes controller-runtime">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container" id="app">
+        
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="menu-toggle" id="menuToggle" title="Toggle Menu">
+                    <span class="hamburger"></span>
+                </button>
+                <h1 class="site-title">
+                    <a href="/">Controller-Runtime Documentation</a>
+                </h1>
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav" id="sidebarNav">
+                <ul class="menu-list">
+    
+    
+        
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/01-manager/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Manager Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/02-controller/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Controller Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/03-reconcile/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Reconcile Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/04-builder/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Builder Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/05-client/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Client Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/06-cache/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Cache Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/07-source/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Source Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/08-handler/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Handler Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/09-predicate/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Predicate Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/10-webhook/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Webhook Package</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/11-additional-packages/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Additional Packages</span>
+                </a>
+            </li>
+            
+            <li class="menu-item active">
+                <a href="http://localhost:9005/docs/00-overview/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Controller-Runtime Architecture Overview</span>
+                </a>
+            </li>
+            
+        
+    
+</ul>
+
+            </nav>
+        </aside>
+
+        
+        <div class="resize-handle" id="resizeHandle"></div>
+
+        
+        <main class="main-content">
+            <div class="content-wrapper">
+                
+<article class="doc-content">
+    <header class="doc-header">
+        <h1>Controller-Runtime Architecture Overview</h1>
+    </header>
+    
+    <div class="doc-body">
+        <h2 id="introduction">Introduction</h2>
+<p>Controller-runtime is a set of Go libraries for building Kubernetes controllers. It provides a framework for creating custom controllers that watch and reconcile Kubernetes resources, following Kubernetes controller best practices. It is the foundation for tools like Kubebuilder and Operator SDK.</p>
+<h2 id="project-information">Project Information</h2>
+<ul>
+<li><strong>Module</strong>: <code>sigs.k8s.io/controller-runtime</code></li>
+<li><strong>Go Version</strong>: 1.25.0</li>
+<li><strong>Kubernetes Version</strong>: v0.35</li>
+<li><strong>License</strong>: Apache License 2.0</li>
+</ul>
+<h2 id="high-level-architecture">High-Level Architecture</h2>
+<p>The controller-runtime framework follows a layered architecture that abstracts common Kubernetes controller patterns:</p>
+<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph TB
+    subgraph &#34;User Code&#34;
+        Reconciler[Reconciler Implementation]
+    end
+    
+    subgraph &#34;Controller-Runtime Framework&#34;
+        Manager[Manager]
+        Builder[Builder]
+        Controller[Controller]
+        Cache[Cache]
+        Client[Client]
+        Webhook[Webhook Server]
+    end
+    
+    subgraph &#34;Kubernetes API&#34;
+        APIServer[Kubernetes API Server]
+        Informers[Informers/Watchers]
+    end
+    
+    Reconciler --&gt; Builder
+    Builder --&gt; Controller
+    Controller --&gt; Manager
+    Manager --&gt; Cache
+    Manager --&gt; Client
+    Manager --&gt; Webhook
+    Cache --&gt; Informers
+    Client --&gt; APIServer
+    Informers --&gt; APIServer
+    Webhook --&gt; APIServer
+    
+    style Manager fill:#e1f5ff
+    style Controller fill:#fff4e1
+    style Cache fill:#f0f0f0
+    style Client fill:#f0f0f0
+</code></pre><h2 id="core-components">Core Components</h2>
+<h3 id="1-manager">1. Manager</h3>
+<p>The <strong>Manager</strong> is the central orchestrator that:</p>
+<ul>
+<li>Initializes and manages shared dependencies (caches, clients, schemes)</li>
+<li>Starts and stops controllers and webhooks</li>
+<li>Handles leader election for high availability</li>
+<li>Manages graceful shutdown</li>
+<li>Provides health and readiness checks</li>
+<li>Serves metrics endpoints</li>
+</ul>
+<p><strong>Key Responsibilities</strong>:</p>
+<ul>
+<li>Lifecycle management of all controllers and webhooks</li>
+<li>Dependency injection for shared resources</li>
+<li>Signal handling for graceful termination</li>
+</ul>
+<h3 id="2-controller">2. Controller</h3>
+<p>A <strong>Controller</strong> is responsible for:</p>
+<ul>
+<li>Watching Kubernetes resources for changes</li>
+<li>Enqueueing reconciliation requests</li>
+<li>Processing work items from a queue</li>
+<li>Invoking reconcilers with appropriate rate limiting and error handling</li>
+</ul>
+<p><strong>Key Features</strong>:</p>
+<ul>
+<li>Configurable concurrency (MaxConcurrentReconciles)</li>
+<li>Built-in rate limiting and exponential backoff</li>
+<li>Support for priority queues</li>
+<li>Panic recovery</li>
+<li>Leader election awareness</li>
+</ul>
+<h3 id="3-reconciler">3. Reconciler</h3>
+<p>The <strong>Reconciler</strong> contains the business logic that:</p>
+<ul>
+<li>Receives reconciliation requests (namespace/name)</li>
+<li>Reads the current state from the API server</li>
+<li>Compares desired state vs actual state</li>
+<li>Takes actions to converge to desired state</li>
+<li>Returns results indicating success, requeue, or error</li>
+</ul>
+<p><strong>Reconciliation Pattern</strong>:</p>
+<ul>
+<li>Level-based (not edge-triggered)</li>
+<li>Idempotent operations</li>
+<li>Error handling with automatic retry</li>
+</ul>
+<h3 id="4-cache">4. Cache</h3>
+<p>The <strong>Cache</strong> provides:</p>
+<ul>
+<li>Local in-memory cache of Kubernetes objects</li>
+<li>Automatic population via informers</li>
+<li>Watch capabilities for resource changes</li>
+<li>Field indexing for efficient lookups</li>
+<li>Namespace filtering and label/field selectors</li>
+</ul>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>Reduces load on API server</li>
+<li>Improves controller performance</li>
+<li>Provides consistent read semantics</li>
+</ul>
+<h3 id="5-client">5. Client</h3>
+<p>The <strong>Client</strong> offers a unified interface for:</p>
+<ul>
+<li><strong>Reading</strong>: Get and List operations (typically from cache)</li>
+<li><strong>Writing</strong>: Create, Update, Delete, Patch operations (directly to API server)</li>
+<li><strong>Status updates</strong>: Separate subresource client</li>
+<li><strong>Typed and unstructured access</strong>: Support for both typed objects and unstructured data</li>
+</ul>
+<p><strong>Client Types</strong>:</p>
+<ul>
+<li>Default split client (reads from cache, writes to API)</li>
+<li>Direct client (all operations to API server)</li>
+<li>Fake client (for testing)</li>
+</ul>
+<h3 id="6-builder">6. Builder</h3>
+<p>The <strong>Builder</strong> provides a fluent API for:</p>
+<ul>
+<li>Constructing controllers with minimal boilerplate</li>
+<li>Configuring watch sources (For, Owns, Watches)</li>
+<li>Setting up event handlers and predicates</li>
+<li>Wiring controllers to the manager</li>
+</ul>
+<p><strong>Builder Pattern Benefits</strong>:</p>
+<ul>
+<li>Declarative controller setup</li>
+<li>Type-safe configuration</li>
+<li>Reduced boilerplate code</li>
+</ul>
+<h3 id="7-webhook">7. Webhook</h3>
+<p>The <strong>Webhook</strong> subsystem supports:</p>
+<ul>
+<li><strong>Admission webhooks</strong>: Validating and mutating webhooks</li>
+<li><strong>Conversion webhooks</strong>: CRD version conversion</li>
+<li><strong>Authentication webhooks</strong>: Token review</li>
+<li>Certificate management with automatic rotation</li>
+</ul>
+<h2 id="event-flow">Event Flow</h2>
+<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">sequenceDiagram
+    participant K8s as Kubernetes API
+    participant Cache as Cache/Informer
+    participant Source as Event Source
+    participant Handler as Event Handler
+    participant Queue as Work Queue
+    participant Controller as Controller
+    participant Reconciler as Reconciler
+    participant Client as Client
+    
+    K8s-&gt;&gt;Cache: Watch events
+    Cache-&gt;&gt;Source: Object changed
+    Source-&gt;&gt;Handler: Process event
+    Handler-&gt;&gt;Queue: Enqueue reconcile request
+    Queue-&gt;&gt;Controller: Dequeue request
+    Controller-&gt;&gt;Reconciler: Reconcile(ctx, request)
+    Reconciler-&gt;&gt;Client: Get/List (from cache)
+    Reconciler-&gt;&gt;Client: Create/Update/Delete (to API)
+    Client-&gt;&gt;K8s: API calls
+    Reconciler-&gt;&gt;Controller: Return result
+    Controller-&gt;&gt;Queue: Requeue if needed
+</code></pre><h2 id="data-flow">Data Flow</h2>
+<pre tabindex="0"><code class="language-mermaid" data-lang="mermaid">graph LR
+    subgraph &#34;Read Path&#34;
+        R1[Reconciler] --&gt;|Get/List| C1[Client]
+        C1 --&gt;|Read| Cache
+        Cache --&gt;|Informer| API1[API Server]
+    end
+    
+    subgraph &#34;Write Path&#34;
+        R2[Reconciler] --&gt;|Create/Update/Delete| C2[Client]
+        C2 --&gt;|Write| API2[API Server]
+    end
+    
+    style Cache fill:#e1f5ff
+    style C1 fill:#fff4e1
+    style C2 fill:#fff4e1
+</code></pre><h2 id="package-organization">Package Organization</h2>
+<p>The controller-runtime project is organized into the following main packages:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Package</th>
+          <th>Purpose</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>pkg/manager</code></td>
+          <td>Manager implementation and options</td>
+      </tr>
+      <tr>
+          <td><code>pkg/controller</code></td>
+          <td>Controller implementation and interfaces</td>
+      </tr>
+      <tr>
+          <td><code>pkg/reconcile</code></td>
+          <td>Reconciler interface and types</td>
+      </tr>
+      <tr>
+          <td><code>pkg/builder</code></td>
+          <td>Builder for constructing controllers</td>
+      </tr>
+      <tr>
+          <td><code>pkg/client</code></td>
+          <td>Kubernetes client interfaces and implementations</td>
+      </tr>
+      <tr>
+          <td><code>pkg/cache</code></td>
+          <td>Cache implementation using informers</td>
+      </tr>
+      <tr>
+          <td><code>pkg/source</code></td>
+          <td>Event sources for controllers</td>
+      </tr>
+      <tr>
+          <td><code>pkg/handler</code></td>
+          <td>Event handlers for processing events</td>
+      </tr>
+      <tr>
+          <td><code>pkg/predicate</code></td>
+          <td>Filters for events</td>
+      </tr>
+      <tr>
+          <td><code>pkg/webhook</code></td>
+          <td>Webhook server and admission handlers</td>
+      </tr>
+      <tr>
+          <td><code>pkg/envtest</code></td>
+          <td>Testing utilities for integration tests</td>
+      </tr>
+      <tr>
+          <td><code>pkg/log</code></td>
+          <td>Logging interfaces and implementations</td>
+      </tr>
+      <tr>
+          <td><code>pkg/metrics</code></td>
+          <td>Metrics collection and serving</td>
+      </tr>
+      <tr>
+          <td><code>pkg/scheme</code></td>
+          <td>Scheme utilities for type registration</td>
+      </tr>
+      <tr>
+          <td><code>pkg/leaderelection</code></td>
+          <td>Leader election support</td>
+      </tr>
+  </tbody>
+</table>
+<h2 id="key-design-principles">Key Design Principles</h2>
+<h3 id="1-level-based-reconciliation">1. Level-Based Reconciliation</h3>
+<p>Controllers reconcile based on the current state, not individual events. This makes controllers resilient to missed events and ensures eventual consistency.</p>
+<h3 id="2-shared-dependencies">2. Shared Dependencies</h3>
+<p>The Manager provides shared caches and clients to all controllers, reducing memory usage and API server load.</p>
+<h3 id="3-declarative-configuration">3. Declarative Configuration</h3>
+<p>The Builder pattern allows controllers to be configured declaratively, making the code more readable and maintainable.</p>
+<h3 id="4-separation-of-concerns">4. Separation of Concerns</h3>
+<ul>
+<li><strong>Source</strong>: Where events come from</li>
+<li><strong>Handler</strong>: How to transform events into reconcile requests</li>
+<li><strong>Predicate</strong>: Which events to process</li>
+<li><strong>Reconciler</strong>: What to do with the request</li>
+</ul>
+<h3 id="5-testability">5. Testability</h3>
+<p>The framework provides testing utilities (<code>envtest</code>, fake clients) to facilitate unit and integration testing.</p>
+<h2 id="common-usage-pattern">Common Usage Pattern</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 1. Create a manager</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mgr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewManager</span>(<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">GetConfigOrDie</span>(), <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Options</span>{})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 2. Define a reconciler</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MyReconciler</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Client</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Scheme</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">Scheme</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MyReconciler</span>) <span style="color:#a6e22e">Reconcile</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">req</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Request</span>) (<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Business logic here</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">Result</span>{}, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 3. Build and register the controller</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">myv1</span>.<span style="color:#a6e22e">MyResource</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Owns</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Complete</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">MyReconciler</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Client</span>: <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetClient</span>(),
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Scheme</span>: <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">GetScheme</span>(),
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 4. Start the manager</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mgr</span>.<span style="color:#a6e22e">Start</span>(<span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">SetupSignalHandler</span>()); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Handle error</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="advanced-features">Advanced Features</h2>
+<h3 id="leader-election">Leader Election</h3>
+<p>Controllers can be configured to run in a leader-elected mode, ensuring only one instance is active at a time.</p>
+<h3 id="priority-queues">Priority Queues</h3>
+<p>Controllers support priority queues for processing high-priority items first.</p>
+<h3 id="field-indexing">Field Indexing</h3>
+<p>Caches support field indexing for efficient lookups based on object fields.</p>
+<h3 id="namespace-filtering">Namespace Filtering</h3>
+<p>Caches can be configured to watch specific namespaces, reducing memory usage.</p>
+<h3 id="webhook-support">Webhook Support</h3>
+<p>The framework includes a webhook server for implementing admission and conversion webhooks.</p>
+<h3 id="metrics-and-observability">Metrics and Observability</h3>
+<p>Built-in Prometheus metrics for controller performance and health monitoring.</p>
+<h2 id="next-steps">Next Steps</h2>
+<p>For detailed information about each package, refer to the individual package documentation:</p>
+<ul>
+<li><a href="./01-manager.md">Manager Package</a></li>
+<li><a href="./02-controller.md">Controller Package</a></li>
+<li><a href="./03-reconcile.md">Reconciler Package</a></li>
+<li><a href="./04-builder.md">Builder Package</a></li>
+<li><a href="./05-client.md">Client Package</a></li>
+<li><a href="./06-cache.md">Cache Package</a></li>
+<li><a href="./07-source.md">Source Package</a></li>
+<li><a href="./08-handler.md">Handler Package</a></li>
+<li><a href="./09-predicate.md">Predicate Package</a></li>
+<li><a href="./10-webhook.md">Webhook Package</a></li>
+<li><a href="./11-additional-packages.md">Additional Packages</a></li>
+</ul>
+
+        
+        
+    </div>
+</article>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

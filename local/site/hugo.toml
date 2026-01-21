@@ -1,0 +1,42 @@
+baseURL = 'http://localhost:9005/'
+languageCode = 'en-us'
+title = 'Controller-Runtime Documentation'
+theme = 'controller-runtime-docs'
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    lineNos = false
+    style = 'monokai'
+
+[params]
+  description = 'Comprehensive documentation for Kubernetes controller-runtime'
+  author = 'Controller-Runtime Contributors'
+
+[menu]
+  [[menu.main]]
+    name = 'Home'
+    url = '/'
+    weight = 1
+  [[menu.main]]
+    name = 'Overview'
+    url = '/docs/00-overview/'
+    weight = 2
+  [[menu.main]]
+    name = 'Core Components'
+    url = '/docs/01-manager/'
+    weight = 3
+  [[menu.main]]
+    name = 'Data Access'
+    url = '/docs/05-client/'
+    weight = 4
+  [[menu.main]]
+    name = 'Event Processing'
+    url = '/docs/07-source/'
+    weight = 5
+  [[menu.main]]
+    name = 'Advanced'
+    url = '/docs/10-webhook/'
+    weight = 6

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicate | Controller-Runtime Documentation</title>
+    <meta name="description" content="Comprehensive documentation for Kubernetes controller-runtime">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container" id="app">
+        
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <button class="menu-toggle" id="menuToggle" title="Toggle Menu">
+                    <span class="hamburger"></span>
+                </button>
+                <h1 class="site-title">
+                    <a href="/">Controller-Runtime Documentation</a>
+                </h1>
+                <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav" id="sidebarNav">
+                <ul class="menu-list">
+    
+    
+        
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/00-overview/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Architecture</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/01-manager/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Manager</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/02-controller/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Controller</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/03-reconcile/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Reconcile</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/04-builder/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Builder</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/05-client/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Client</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/06-cache/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Cache</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/07-source/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Source</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/08-handler/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Handler</span>
+                </a>
+            </li>
+            
+            <li class="menu-item active">
+                <a href="http://localhost:9005/docs/09-predicate/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Predicate</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/10-webhook/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Webhook</span>
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="http://localhost:9005/docs/11-additional-packages/">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">Additional Packages</span>
+                </a>
+            </li>
+            
+        
+    
+</ul>
+
+            </nav>
+        </aside>
+
+        
+        <div class="resize-handle" id="resizeHandle"></div>
+
+        
+        <main class="main-content">
+            <div class="content-wrapper">
+                
+<article class="doc-content">
+    <header class="doc-header">
+        <h1>Predicate</h1>
+    </header>
+    
+    <div class="doc-body">
+        <h2 id="overview">Overview</h2>
+<p>The <code>pkg/predicate</code> package provides filters (predicates) that determine which events should be processed by controllers. Predicates help reduce unnecessary reconciliations by filtering events before they reach the handler.</p>
+<h2 id="package-location">Package Location</h2>
+<pre tabindex="0"><code>pkg/predicate/
+├── predicate.go        # Predicate interfaces and implementations
+└── doc.go              # Package documentation
+</code></pre><h2 id="core-concepts">Core Concepts</h2>
+<h3 id="predicate-flow">Predicate Flow</h3>
+<div class="mermaid-diagram">
+<img src="/images/diagrams/diagram-01f783f1d571.svg" alt="Diagram" />
+</div>
+<h2 id="predicate-interface">Predicate Interface</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Predicate</span> = <span style="color:#a6e22e">TypedPredicate</span>[<span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">TypedPredicate</span>[<span style="color:#a6e22e">object</span> <span style="color:#66d9ef">any</span>] <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Create returns true if the Create event should be processed</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">TypedCreateEvent</span>[<span style="color:#a6e22e">object</span>]) <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Delete returns true if the Delete event should be processed</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Delete</span>(<span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">TypedDeleteEvent</span>[<span style="color:#a6e22e">object</span>]) <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Update returns true if the Update event should be processed</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">TypedUpdateEvent</span>[<span style="color:#a6e22e">object</span>]) <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Generic returns true if the Generic event should be processed</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Generic</span>(<span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">TypedGenericEvent</span>[<span style="color:#a6e22e">object</span>]) <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="built-in-predicates">Built-in Predicates</h2>
+<h3 id="1-generationchangedpredicate">1. GenerationChangedPredicate</h3>
+<p>Filters events where only the generation changed (spec changes):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/predicate&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Only process when spec changes</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}, <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">WithPredicates</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>    ))
+</span></span></code></pre></div><p><strong>Use case</strong>: Ignore status-only updates.</p>
+<p><strong>Example</strong>: Deployment status updated → Event dropped</p>
+<h3 id="2-resourceversionchangedpredicate">2. ResourceVersionChangedPredicate</h3>
+<p>Filters events where resource version didn&rsquo;t change:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Process all changes including status</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">WithPredicates</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">ResourceVersionChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>    ))
+</span></span></code></pre></div><p><strong>Use case</strong>: Process all updates including status changes.</p>
+<h3 id="3-annotationchangedpredicate">3. AnnotationChangedPredicate</h3>
+<p>Filters events where annotations didn&rsquo;t change:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Only process when annotations change</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">WithPredicates</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">AnnotationChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>    ))
+</span></span></code></pre></div><p><strong>Use case</strong>: React to annotation changes only.</p>
+<h3 id="4-labelchangedpredicate">4. LabelChangedPredicate</h3>
+<p>Filters events where labels didn&rsquo;t change:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Only process when labels change</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">WithPredicates</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">LabelChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>    ))
+</span></span></code></pre></div><p><strong>Use case</strong>: React to label changes only.</p>
+<h3 id="5-newpredicatefuncs">5. NewPredicateFuncs</h3>
+<p>Creates a predicate from a simple function:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Filter by namespace</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">NewPredicateFuncs</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetNamespace</span>() <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;production&#34;</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><p><strong>Use case</strong>: Simple filtering based on object properties.</p>
+<h2 id="using-predicates">Using Predicates</h2>
+<h3 id="with-for-method">With For Method</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}, <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">WithPredicates</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>    ))
+</span></span></code></pre></div><h3 id="with-owns-method">With Owns Method</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Owns</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}, <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">WithPredicates</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">ResourceVersionChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>    ))
+</span></span></code></pre></div><h3 id="with-watches-method">With Watches Method</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Watches</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">ConfigMap</span>{},
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">handler</span>.<span style="color:#a6e22e">EnqueueRequestsFromMapFunc</span>(<span style="color:#a6e22e">mapFunc</span>),
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">WithPredicates</span>(<span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">LabelChangedPredicate</span>{}),
+</span></span><span style="display:flex;"><span>    )
+</span></span></code></pre></div><h3 id="global-predicates">Global Predicates</h3>
+<p>Apply to all watches:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Owns</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>{}).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">WithEventFilter</span>(<span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{})
+</span></span></code></pre></div><h3 id="multiple-predicates">Multiple Predicates</h3>
+<p>Combine multiple predicates (AND logic):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}, <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">WithPredicates</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">NewPredicateFuncs</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetNamespace</span>() <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;production&#34;</span>
+</span></span><span style="display:flex;"><span>        }),
+</span></span><span style="display:flex;"><span>    ))
+</span></span></code></pre></div><h2 id="custom-predicates">Custom Predicates</h2>
+<h3 id="using-funcs">Using Funcs</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;sigs.k8s.io/controller-runtime/pkg/predicate&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pred</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">CreateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">CreateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Only process creates in production namespace</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">GetNamespace</span>() <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;production&#34;</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">UpdateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Only process if generation changed</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectNew</span>.<span style="color:#a6e22e">GetGeneration</span>() <span style="color:#f92672">!=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectOld</span>.<span style="color:#a6e22e">GetGeneration</span>()
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DeleteFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">DeleteEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Process all deletes</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GenericFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Process all generic events</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}, <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">WithPredicates</span>(<span style="color:#a6e22e">pred</span>))
+</span></span></code></pre></div><h3 id="implementing-predicate-interface">Implementing Predicate Interface</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MyPredicate</span> <span style="color:#66d9ef">struct</span>{}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#a6e22e">MyPredicate</span>) <span style="color:#a6e22e">Create</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">CreateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">GetLabels</span>()[<span style="color:#e6db74">&#34;managed-by&#34;</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;my-controller&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#a6e22e">MyPredicate</span>) <span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">oldLabels</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectOld</span>.<span style="color:#a6e22e">GetLabels</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">newLabels</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectNew</span>.<span style="color:#a6e22e">GetLabels</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">oldLabels</span>[<span style="color:#e6db74">&#34;version&#34;</span>] <span style="color:#f92672">!=</span> <span style="color:#a6e22e">newLabels</span>[<span style="color:#e6db74">&#34;version&#34;</span>]
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#a6e22e">MyPredicate</span>) <span style="color:#a6e22e">Delete</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">DeleteEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#a6e22e">MyPredicate</span>) <span style="color:#a6e22e">Generic</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Use custom predicate</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}, <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">WithPredicates</span>(<span style="color:#a6e22e">MyPredicate</span>{}))
+</span></span></code></pre></div><h2 id="predicate-combinators">Predicate Combinators</h2>
+<h3 id="and">And</h3>
+<p>Combine predicates with AND logic:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">pred</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">And</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">NewPredicateFuncs</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetNamespace</span>() <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;production&#34;</span>
+</span></span><span style="display:flex;"><span>    }),
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h3 id="or">Or</h3>
+<p>Combine predicates with OR logic:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">pred</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Or</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">LabelChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">AnnotationChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h3 id="not">Not</h3>
+<p>Negate a predicate:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">pred</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Not</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">NewPredicateFuncs</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetNamespace</span>() <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;kube-system&#34;</span>
+</span></span><span style="display:flex;"><span>    }),
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h2 id="common-predicate-patterns">Common Predicate Patterns</h2>
+<h3 id="1-filter-by-namespace">1. Filter by Namespace</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">NewPredicateFuncs</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetNamespace</span>() <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;production&#34;</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="2-filter-by-label">2. Filter by Label</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">NewPredicateFuncs</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">labels</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetLabels</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">labels</span>[<span style="color:#e6db74">&#34;managed-by&#34;</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;my-controller&#34;</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="3-filter-by-annotation">3. Filter by Annotation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">NewPredicateFuncs</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">annotations</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetAnnotations</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">annotations</span>[<span style="color:#e6db74">&#34;reconcile&#34;</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;true&#34;</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="4-ignore-status-only-updates">4. Ignore Status-Only Updates</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{}
+</span></span></code></pre></div><h3 id="5-process-only-spec-changes">5. Process Only Spec Changes</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">UpdateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">oldObj</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectOld</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">newObj</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectNew</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> !<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">DeepEqual</span>(<span style="color:#a6e22e">oldObj</span>.<span style="color:#a6e22e">Spec</span>, <span style="color:#a6e22e">newObj</span>.<span style="color:#a6e22e">Spec</span>)
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="6-filter-by-owner">6. Filter by Owner</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">NewPredicateFuncs</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">owner</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetOwnerReferences</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">owner</span>.<span style="color:#a6e22e">Kind</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;MyResource&#34;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="7-filter-by-deletion">7. Filter by Deletion</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">CreateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">CreateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">Object</span>.<span style="color:#a6e22e">GetDeletionTimestamp</span>().<span style="color:#a6e22e">IsZero</span>()
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">UpdateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Only process if being deleted</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> !<span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectNew</span>.<span style="color:#a6e22e">GetDeletionTimestamp</span>().<span style="color:#a6e22e">IsZero</span>()
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="8-filter-by-field-value">8. Filter by Field Value</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">NewPredicateFuncs</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Spec</span>.<span style="color:#a6e22e">NodeName</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;node-1&#34;</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="9-ignore-system-namespaces">9. Ignore System Namespaces</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">NewPredicateFuncs</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">systemNamespaces</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;kube-system&#34;</span>, <span style="color:#e6db74">&#34;kube-public&#34;</span>, <span style="color:#e6db74">&#34;kube-node-lease&#34;</span>}
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ns</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">systemNamespaces</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetNamespace</span>() <span style="color:#f92672">==</span> <span style="color:#a6e22e">ns</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="10-paused-annotation">10. Paused Annotation</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">NewPredicateFuncs</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">annotations</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetAnnotations</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">annotations</span>[<span style="color:#e6db74">&#34;reconcile.paused&#34;</span>] <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;true&#34;</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h2 id="advanced-patterns">Advanced Patterns</h2>
+<h3 id="stateful-predicate">Stateful Predicate</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">StatefulPredicate</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">lastSeen</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Time</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">mu</span>       <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">RWMutex</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">StatefulPredicate</span>) <span style="color:#a6e22e">Update</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">mu</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">mu</span>.<span style="color:#a6e22e">Unlock</span>()
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">key</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectNew</span>.<span style="color:#a6e22e">GetNamespace</span>() <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;/&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectNew</span>.<span style="color:#a6e22e">GetName</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">lastSeen</span>, <span style="color:#a6e22e">exists</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">lastSeen</span>[<span style="color:#a6e22e">key</span>]
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">exists</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Since</span>(<span style="color:#a6e22e">lastSeen</span>) &gt; <span style="color:#ae81ff">5</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">lastSeen</span>[<span style="color:#a6e22e">key</span>] = <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Implement other methods...</span>
+</span></span></code></pre></div><h3 id="type-specific-predicate">Type-Specific Predicate</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">PodReadyPredicate</span>() <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Predicate</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">CreateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">CreateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">Object</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">isPodReady</span>(<span style="color:#a6e22e">pod</span>)
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">UpdateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">oldPod</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectOld</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">newPod</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectNew</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">isPodReady</span>(<span style="color:#a6e22e">oldPod</span>) <span style="color:#f92672">!=</span> <span style="color:#a6e22e">isPodReady</span>(<span style="color:#a6e22e">newPod</span>)
+</span></span><span style="display:flex;"><span>        },
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">isPodReady</span>(<span style="color:#a6e22e">pod</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">cond</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">pod</span>.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">Conditions</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">cond</span>.<span style="color:#a6e22e">Type</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">PodReady</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">cond</span>.<span style="color:#a6e22e">Status</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">ConditionTrue</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="best-practices">Best Practices</h2>
+<h3 id="1-use-generationchangedpredicate-for-spec-changes">1. Use GenerationChangedPredicate for Spec Changes</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Ignore status-only updates</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{}
+</span></span></code></pre></div><h3 id="2-combine-predicates-for-complex-logic">2. Combine Predicates for Complex Logic</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">And</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">NewPredicateFuncs</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetNamespace</span>() <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;kube-system&#34;</span>
+</span></span><span style="display:flex;"><span>    }),
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h3 id="3-use-newpredicatefuncs-for-simple-filters">3. Use NewPredicateFuncs for Simple Filters</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Simple namespace filter</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">NewPredicateFuncs</span>(<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">obj</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Object</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">obj</span>.<span style="color:#a6e22e">GetNamespace</span>() <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;production&#34;</span>
+</span></span><span style="display:flex;"><span>})
+</span></span></code></pre></div><h3 id="4-handle-all-event-types">4. Handle All Event Types</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">CreateFunc</span>:  <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">CreateEvent</span>) <span style="color:#66d9ef">bool</span> { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span> },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">UpdateFunc</span>:  <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>) <span style="color:#66d9ef">bool</span> { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span> },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DeleteFunc</span>:  <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">DeleteEvent</span>) <span style="color:#66d9ef">bool</span> { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span> },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GenericFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>) <span style="color:#66d9ef">bool</span> { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span> },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="5-type-assert-safely">5. Type Assert Safely</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">UpdateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectNew</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Use pod</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="common-pitfalls">Common Pitfalls</h2>
+<h3 id="1-forgetting-event-types">1. Forgetting Event Types</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// BAD - only handles updates</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">UpdateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Missing Create, Delete, Generic</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// GOOD - handle all types</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">CreateFunc</span>:  <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">CreateEvent</span>) <span style="color:#66d9ef">bool</span> { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span> },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">UpdateFunc</span>:  <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>) <span style="color:#66d9ef">bool</span> { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span> },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DeleteFunc</span>:  <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">DeleteEvent</span>) <span style="color:#66d9ef">bool</span> { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span> },
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">GenericFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">GenericEvent</span>) <span style="color:#66d9ef">bool</span> { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span> },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="2-type-assertion-without-check">2. Type Assertion Without Check</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// BAD - panics if wrong type</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pod</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectNew</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// GOOD - safe type assertion</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pod</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectNew</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">Pod</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="3-expensive-predicate-logic">3. Expensive Predicate Logic</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// BAD - API calls in predicate</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">UpdateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">list</span> <span style="color:#a6e22e">corev1</span>.<span style="color:#a6e22e">PodList</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">list</span>) <span style="color:#75715e">// Expensive!</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// GOOD - simple checks only</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">Funcs</span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">UpdateFunc</span>: <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">e</span> <span style="color:#a6e22e">event</span>.<span style="color:#a6e22e">UpdateEvent</span>) <span style="color:#66d9ef">bool</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectNew</span>.<span style="color:#a6e22e">GetGeneration</span>() <span style="color:#f92672">!=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">ObjectOld</span>.<span style="color:#a6e22e">GetGeneration</span>()
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="performance-considerations">Performance Considerations</h2>
+<h3 id="predicate-efficiency">Predicate Efficiency</h3>
+<p>Predicates are called for every event, so they should be:</p>
+<ul>
+<li><strong>Fast</strong>: Avoid expensive operations</li>
+<li><strong>Stateless</strong>: Don&rsquo;t rely on external state</li>
+<li><strong>Simple</strong>: Keep logic straightforward</li>
+</ul>
+<h3 id="reducing-reconciliations">Reducing Reconciliations</h3>
+<p>Use predicates to reduce unnecessary reconciliations:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Without predicate: reconcile on every update</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// With predicate: reconcile only on spec changes</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ctrl</span>.<span style="color:#a6e22e">NewControllerManagedBy</span>(<span style="color:#a6e22e">mgr</span>).
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">For</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">appsv1</span>.<span style="color:#a6e22e">Deployment</span>{}, <span style="color:#a6e22e">builder</span>.<span style="color:#a6e22e">WithPredicates</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">predicate</span>.<span style="color:#a6e22e">GenerationChangedPredicate</span>{},
+</span></span><span style="display:flex;"><span>    ))
+</span></span></code></pre></div><p>This can reduce reconciliations by 50-90% in typical scenarios.</p>
+<h2 id="related-packages">Related Packages</h2>
+<ul>
+<li><a href="/docs/07-source/">Source Package</a> - Generates events filtered by predicates</li>
+<li><a href="/docs/08-handler/">Handler Package</a> - Processes events that pass predicates</li>
+<li><a href="/docs/02-controller/">Controller Package</a> - Uses predicates</li>
+<li><a href="/docs/04-builder/">Builder Package</a> - Configures predicates</li>
+</ul>
+
+        
+        
+    </div>
+</article>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

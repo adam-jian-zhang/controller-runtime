@@ -1,0 +1,15 @@
+<ul class="menu-list">
+    {{ $currentPage := . }}
+    {{ range .Site.Sections }}
+        {{ if eq .Section "docs" }}
+            {{ range .Pages.ByWeight }}
+            <li class="menu-item{{ if eq $currentPage.RelPermalink .RelPermalink }} active{{ end }}">
+                <a href="{{ .Permalink }}">
+                    <span class="menu-icon">📄</span>
+                    <span class="menu-text">{{ .Title }}</span>
+                </a>
+            </li>
+            {{ end }}
+        {{ end }}
+    {{ end }}
+</ul>
