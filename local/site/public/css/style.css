@@ -325,15 +325,18 @@ body {
 }
 
 /* Mermaid Diagrams */
-.mermaid-diagram {
+.mermaid-diagram,
+.mermaid {
     margin: 2rem 0;
     text-align: center;
     background-color: var(--bg-secondary);
     padding: 1rem;
     border-radius: 4px;
+    overflow-x: auto;
 }
 
-.mermaid-diagram img {
+.mermaid-diagram img,
+.mermaid svg {
     max-width: 100%;
     height: auto;
 }

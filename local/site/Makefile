@@ -1,4 +1,4 @@
-.PHONY: help process build serve clean docker-build docker-run all
+.PHONY: help process build serve clean docker-build docker-run generate-svgs all
 
 PYTHON := python3
 HUGO := hugo
@@ -11,10 +11,13 @@ help: ## Show this help message
 	@echo 'Available targets:'
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-process: ## Process markdown files and convert mermaid diagrams to SVG
+generate-svgs: ## Generate SVG files from Mermaid diagrams (REQUIRED)
+	@echo "Generating SVG files from Mermaid diagrams..."
+	@node scripts/convert-mermaid-node.js || true
+
+process: generate-svgs ## Process markdown files and embed SVGs
 	@echo "Processing documentation..."
-	@chmod +x scripts/process-docs.py
-	@$(PYTHON) scripts/process-docs.py
+	@$(PYTHON) scripts/process.py
 
 build: process ## Build the Hugo site
 	@echo "Building Hugo site..."
@@ -26,7 +29,7 @@ serve: process ## Serve the site locally with Hugo
 
 clean: ## Clean generated files
 	@echo "Cleaning..."
-	@rm -rf public content/docs static/images/diagrams
+	@rm -rf public content/docs content/_index.md static/images/diagrams
 
 docker-build: build ## Build Docker image
 	@echo "Building Docker image..."

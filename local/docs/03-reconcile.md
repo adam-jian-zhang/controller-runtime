@@ -128,11 +128,11 @@ graph TB
     Reconcile[Reconcile]
     Reconcile --> Success{Result?}
     
-    Success -->|Result{}, nil| Done[Done - No Requeue]
-    Success -->|Result{Requeue: true}, nil| RateLimited[Requeue with Rate Limit]
-    Success -->|Result{RequeueAfter: 5m}, nil| Delayed[Requeue after 5 minutes]
-    Success -->|Result{}, error| Error[Requeue with Backoff]
-    Success -->|Result{}, TerminalError| Terminal[No Requeue - Log Error]
+    Success -->|"Result{}, nil"| Done[Done - No Requeue]
+    Success -->|"Result{Requeue: true}, nil"| RateLimited[Requeue with Rate Limit]
+    Success -->|"Result{RequeueAfter: 5m}, nil"| Delayed[Requeue after 5 minutes]
+    Success -->|"Result{}, error"| Error[Requeue with Backoff]
+    Success -->|"Result{}, TerminalError"| Terminal[No Requeue - Log Error]
     
     style Done fill:#c8e6c9
     style Error fill:#ffcdd2

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mermaid Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .mermaid { background: #f5f5f5; padding: 20px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>Mermaid Rendering Test</h1>
+    <p>If you see a diagram below (not code), Mermaid is working:</p>
+    
+    <div class="mermaid">
+graph TB
+    A[Start] --> B[Process]
+    B --> C[End]
+    </div>
+    
+    <p>If you see raw code above, check:</p>
+    <ul>
+        <li>Browser console for errors (F12)</li>
+        <li>Network tab - is mermaid@10 loading?</li>
+        <li>JavaScript enabled?</li>
+        <li>Ad blocker blocking CDN?</li>
+    </ul>
+    
+    <script type="module">
+        if (document.querySelector('.mermaid')) {
+            import('https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs')
+                .then(module => {
+                    console.log('Mermaid.js loaded successfully!');
+                    const mermaid = module.default;
+                    mermaid.initialize({ 
+                        startOnLoad: true,
+                        theme: 'default'
+                    });
+                })
+                .catch(err => {
+                    console.error('Failed to load Mermaid.js:', err);
+                    alert('Failed to load Mermaid.js: ' + err.message);
+                });
+        }
+    </script>
+</body>
+</html>
